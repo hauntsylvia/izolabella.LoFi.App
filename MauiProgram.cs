@@ -8,7 +8,6 @@
             Builder
                 .UseMauiApp<App>()
                 .ConfigureFonts(Fonts => Fonts.AddFont("RobotoMonoMedium.ttf", "RobotoMonoMedium"));
-
             return Builder.Build();
         }
     }

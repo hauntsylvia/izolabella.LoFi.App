@@ -63,6 +63,17 @@
 	  <None Remove="Resources\Images\izolabella_g1.gif" />
 	  <None Remove="Resources\Images\izolabella_g2.gif" />
 	  <None Remove="Resources\Images\izolabella_g3.gif" />
+	  <None Remove="Resources\Raw\MidnightVisitors.wav" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="NAudio" Version="2.1.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\izolabella.Music\izolabella.Music.csproj" />
+	</ItemGroup>
+
+	<ProjectExtensions><VisualStudio><UserProperties XamarinHotReloadDebuggerTimeoutExceptionizolabellaLoFiAppHideInfoBar="True" /></VisualStudio></ProjectExtensions>
 
 </Project>

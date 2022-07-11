@@ -1,4 +1,6 @@
-﻿namespace izolabella.LoFi.App
+﻿using System.Reflection;
+
+namespace izolabella.LoFi.App
 {
     public partial class MainPage : ContentPage
     {
@@ -15,7 +17,7 @@
         /// <param name="Args"></param>
         private void MainPageSizeChanged(object Sender, EventArgs Args)
         {
-            if(MainGrid.Width > MainGrid.Height)
+            if (MainGrid.Width > MainGrid.Height)
             {
                 Resize.TranslateTo(Resize.X - (MainGrid.Width / 2) + 50, MainGrid.Height - 100, 150, Easing.CubicOut);
             }

@@ -1,4 +1,7 @@
-﻿using Microsoft.UI.Xaml;
+﻿using izolabella.Music.Windows;
+using Microsoft.UI.Xaml;
+using NAudio.Wave;
+using System.Reflection;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -17,6 +20,10 @@ namespace izolabella.LoFi.App.WinUI
         public App()
         {
             this.InitializeComponent();
+            string Dir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            Stream S = new FileStream(Path.Combine(Dir, "MidnightVisitors.wav"), FileMode.Open, FileAccess.ReadWrite);
+            WindowsMusicPlayer P = new(new(S, 48000, 2));
+            P.StartAsync();
         }
 
         protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
