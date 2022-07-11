@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:y="clr-namespace:izolabella.LoFi.App"
+             x:Class="izolabella.LoFi.App.MainPage"
+             Shell.NavBarIsVisible="False">
+
+    <Shell.TitleView>
+        <Label Text="izolabella.LoFi.App" HorizontalOptions="Center"></Label>
+    </Shell.TitleView>
+    <ContentView>
+        <Grid x:Name="MainGrid" SizeChanged="MainPageSizeChanged">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="2*"></RowDefinition>
+            </Grid.RowDefinitions>
+            <FlexLayout Grid.Column="0" Grid.Row="0" AlignContent="Center" JustifyContent="Center">
+                <Image
+                    Source="izolabella_g1.gif"
+                    SemanticProperties.Description="!!"
+                    Aspect="AspectFill"
+                    Opacity="0.35"
+                    ZIndex="0">
+                </Image>
+            </FlexLayout>
+            <VerticalStackLayout Padding="20" Spacing="10" ZIndex="1"
+                                 Grid.Column="0" Grid.Row="0" MaximumWidthRequest="600" MinimumWidthRequest="300">
+                <Frame HorizontalOptions="Center" MaximumHeightRequest="175" MinimumHeightRequest="175" 
+                       VerticalOptions="Center" x:Name="Resize">
+                    <VerticalStackLayout VerticalOptions="Start" ZIndex="3" WidthRequest="300">
+                        <Label Text="Song Name" x:Name="SongNameLabel" Opacity="0.8" FontSize="18" CharacterSpacing="1.75" ZIndex="4"/>
+                        <Label Text="Artist" x:Name="ArtistNameLabel" Opacity="0.5" FontSize="15" CharacterSpacing="1.75" ZIndex="4"/>
+                    </VerticalStackLayout>
+                </Frame>
+            </VerticalStackLayout>
+        </Grid>
+    </ContentView>
+ 
+</ContentPage>
