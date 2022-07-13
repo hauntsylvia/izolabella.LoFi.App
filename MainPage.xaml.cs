@@ -1,4 +1,6 @@
 ﻿using System.Reflection;
+using izolabella.Music.Structure.Clients;
+using izolabella.Music.Structure.Music.Songs;
 
 namespace izolabella.LoFi.App
 {
@@ -7,6 +9,21 @@ namespace izolabella.LoFi.App
         public MainPage()
         {
             InitializeComponent();
+            SongNameLabel.Text = NowPlaying.Name;
+            ArtistNameLabel.Text = NowPlaying.Author.Name;
+        }
+
+        public static IzolabellaSong? NowPlaying { get; set; }
+
+        public static List<MainPage> Actions { get; set; } = new();
+
+        public static void SetNP(IzolabellaSong NP)
+        {
+            NowPlaying = NP;
+            foreach(MainPage P in Actions)
+            {
+                P.SongNameLabel.Text = NP.Name;
+            }
         }
 
         /// <summary>

@@ -13,15 +13,13 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="2*"></RowDefinition>
             </Grid.RowDefinitions>
-            <FlexLayout Grid.Column="0" Grid.Row="0" AlignContent="Center" JustifyContent="Center">
-                <Image
-                    Source="izolabella_g1.gif"
-                    SemanticProperties.Description="!!"
-                    Aspect="AspectFill"
-                    Opacity="0.35"
-                    ZIndex="0">
-                </Image>
-            </FlexLayout>
+            <Image
+                Source="izolabella_g1.gif"
+                SemanticProperties.Description="!!"
+                Aspect="AspectFill"
+                Opacity="0.35"
+                ZIndex="0">
+            </Image>
             <VerticalStackLayout Padding="20" Spacing="10" ZIndex="1"
                                  Grid.Column="0" Grid.Row="0" MaximumWidthRequest="600" MinimumWidthRequest="300">
                 <Frame HorizontalOptions="Center" MaximumHeightRequest="175" MinimumHeightRequest="175" 

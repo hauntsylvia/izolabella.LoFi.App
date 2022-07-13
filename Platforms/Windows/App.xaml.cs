@@ -1,4 +1,6 @@
-﻿using izolabella.Music.Windows;
+﻿using izolabella.Music.Platforms.Windows;
+using izolabella.Music.Structure.Clients;
+using izolabella.Music.Structure.Music.Songs;
 using Microsoft.UI.Xaml;
 using NAudio.Wave;
 using System.Reflection;
@@ -23,9 +25,78 @@ namespace izolabella.LoFi.App.WinUI
             string? Dir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             if (Dir != null)
             {
-                Stream S = new FileStream(Path.Combine(Dir, "MidnightVisitors.wav"), FileMode.Open, FileAccess.ReadWrite);
-                WindowsMusicPlayer P = new(new(S, 48000, 2));
-                P.StartAsync();
+                new Task(() => this.ControlSongLoop()).Start();
+                //Stream S = new FileStream(Path.Combine(Dir, "MidnightVisitors.wav"), FileMode.Open, FileAccess.ReadWrite);
+                //WindowsMusicPlayer P = new(new(S, 48000, 2));
+                //P.StartAsync();
+            }
+        }
+
+        public IzolabellaLoFiClient Client { get; } = new();
+
+        private int from = 0;
+        public int From
+        {
+            get
+            {
+                return this.Last != null && this.Last.FileSize > this.from ? this.from : 0;
+            }
+            set
+            {
+                this.from = this.Last != null && this.Last.FileSize < value ? 0 : value;
+            } 
+        }
+
+        public TimeSpan BufferDur { get; } = TimeSpan.FromSeconds(15);
+
+        public int Max => this.Player?.Provider.BufferLength ?? 1;
+
+        public int BufferSize => (int)this.Max / 4;
+
+        public IzolabellaSong? Last { get; private set; }
+        public WindowsMusicPlayer? Player { get; private set; }
+
+        public double MaxQueue => 20;
+
+        public List<IEnumerable<byte>> Queue { get; private set; } = new();
+
+        private async void ControlSongLoop()
+        {
+            this.Last ??= await this.Client.GetCurrentlyPlayingAsync();
+            if (this.Last != null)
+            {
+                MainPage.SetNP(this.Last);
+                if(this.Player == null)
+                {
+                    this.Player = new WindowsMusicPlayer(new(48000, 2, this.Last.FileSize), this.BufferDur);
+                    await this.Player.StartAsync();
+                }
+                await this.FillArrayAsync();
+                byte[] Feed = this.Queue.ToList().Take(this.BufferSize).SelectMany(B => B.ToList()).ToArray();
+                if(this.Player.Provider.BufferedDuration != TimeSpan.Zero)
+                {
+                    await Task.Delay(this.Player.Provider.BufferedDuration.Subtract(TimeSpan.FromMilliseconds(20)));
+                }
+                await this.Player.FeedBytesAsync(Feed);
+                if (this.Queue.Count >= this.BufferSize)
+                {
+                    this.Queue.RemoveRange(0, this.BufferSize);
+                }
+                else
+                {
+                    this.Queue.Clear();
+                }
+                this.ControlSongLoop();
+            }
+        }
+
+        private async Task FillArrayAsync()
+        {
+            if(this.Queue.Count < this.MaxQueue)
+            {
+                byte[] Feed = await this.Client.GetBytesAsync(null, this.From, (int)this.Max);
+                this.From += Feed.Length;
+                this.Queue.Add(Feed);
             }
         }
 
