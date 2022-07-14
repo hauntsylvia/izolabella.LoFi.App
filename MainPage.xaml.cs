@@ -9,21 +9,34 @@ namespace izolabella.LoFi.App
         public MainPage()
         {
             InitializeComponent();
-            SongNameLabel.Text = NowPlaying.Name;
-            ArtistNameLabel.Text = NowPlaying.Author.Name;
+            IzolabellaSong? S = Client.GetCurrentlyPlayingAsync().Result;
+            SetAction((S) =>
+            {
+                SongNameLabel.Text = S.Name;
+                ArtistNameLabel.Text = S.Author.Name;
+            });
+            if (S != null)
+            {
+                SongNameLabel.Text = S.Name;
+                ArtistNameLabel.Text = S.Author.Name;
+            }
         }
 
-        public static IzolabellaSong? NowPlaying { get; set; }
+        public static IzolabellaLoFiClient Client { get; } = new();
 
-        public static List<MainPage> Actions { get; set; } = new();
+        public static List<Action<IzolabellaSong>> Actions { get; set; } = new();
 
         public static void SetNP(IzolabellaSong NP)
         {
-            NowPlaying = NP;
-            foreach(MainPage P in Actions)
+            foreach(Action<IzolabellaSong> Act in Actions)
             {
-                P.SongNameLabel.Text = NP.Name;
+                Act.Invoke(NP);
             }
+        }
+
+        public static void SetAction(Action<IzolabellaSong> A)
+        {
+            Actions.Add(A);
         }
 
         /// <summary>

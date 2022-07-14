@@ -22,29 +22,22 @@ namespace izolabella.LoFi.App.WinUI
         public App()
         {
             this.InitializeComponent();
-            string? Dir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            if (Dir != null)
-            {
-                new Task(() => this.ControlSongLoop()).Start();
-                //Stream S = new FileStream(Path.Combine(Dir, "MidnightVisitors.wav"), FileMode.Open, FileAccess.ReadWrite);
-                //WindowsMusicPlayer P = new(new(S, 48000, 2));
-                //P.StartAsync();
-            }
-        }
+            //string? Dir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            //if (Dir != null)
+            //{
+            //    //Stream S = new FileStream(Path.Combine(Dir, "MidnightVisitors.wav"), FileMode.Open, FileAccess.ReadWrite);
+            //    //WindowsMusicPlayer P = new(new(S, 48000, 2));
+            //    //P.StartAsync();
+            //}
 
-        public IzolabellaLoFiClient Client { get; } = new();
+            new Task(() => this.ControlSongLoop()).Start();
+        }
 
         private int from = 0;
         public int From
         {
-            get
-            {
-                return this.Last != null && this.Last.FileSize > this.from ? this.from : 0;
-            }
-            set
-            {
-                this.from = this.Last != null && this.Last.FileSize < value ? 0 : value;
-            } 
+            get => this.Last != null && this.Last.FileSize > this.from ? this.from : 0;
+            set => this.from = this.Last != null && this.Last.FileSize < value ? 0 : value;
         }
 
         public TimeSpan BufferDur { get; } = TimeSpan.FromSeconds(15);
@@ -62,11 +55,11 @@ namespace izolabella.LoFi.App.WinUI
 
         private async void ControlSongLoop()
         {
-            this.Last ??= await this.Client.GetCurrentlyPlayingAsync();
+            this.Last ??= await MainPage.Client.GetCurrentlyPlayingAsync();
             if (this.Last != null)
             {
                 MainPage.SetNP(this.Last);
-                if(this.Player == null)
+                if (this.Player == null)
                 {
                     this.Player = new WindowsMusicPlayer(new(48000, 2, this.Last.FileSize), this.BufferDur);
                     await this.Player.StartAsync();
@@ -94,7 +87,7 @@ namespace izolabella.LoFi.App.WinUI
         {
             if(this.Queue.Count < this.MaxQueue)
             {
-                byte[] Feed = await this.Client.GetBytesAsync(null, this.From, (int)this.Max);
+                byte[] Feed = await MainPage.Client.GetBytesAsync(null, this.From, (int)this.Max);
                 this.From += Feed.Length;
                 this.Queue.Add(Feed);
             }
