@@ -61,7 +61,7 @@ namespace izolabella.LoFi.App.WinUI
                 MainPage.SetNP(this.Last);
                 if (this.Player == null)
                 {
-                    this.Player = new WindowsMusicPlayer(new(48000, 2, this.Last.FileSize), this.BufferDur);
+                    this.Player = new WindowsMusicPlayer(this.Last, this.BufferDur);
                     await this.Player.StartAsync();
                 }
                 await this.FillArrayAsync();
