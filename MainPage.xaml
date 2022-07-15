@@ -8,7 +8,7 @@
     <Shell.TitleView>
         <Label Text="izolabella.LoFi.App" HorizontalOptions="Center"></Label>
     </Shell.TitleView>
-    <ContentView>
+    <ContentView x:Name="FullContentView">
         <Grid x:Name="MainGrid" SizeChanged="MainPageSizeChanged">
             <Grid.RowDefinitions>
                 <RowDefinition Height="2*"></RowDefinition>
@@ -27,6 +27,7 @@
                     <VerticalStackLayout VerticalOptions="Start" ZIndex="3" WidthRequest="300">
                         <Label Text="Song Name" x:Name="SongNameLabel" Opacity="0.8" FontSize="18" CharacterSpacing="1.75" ZIndex="4"/>
                         <Label Text="Artist" x:Name="ArtistNameLabel" Opacity="0.5" FontSize="15" CharacterSpacing="1.75" ZIndex="4"/>
+                        <Slider x:Name="VolumeSlider" WidthRequest="150" HorizontalOptions="Start" Opacity="0.8" ValueChanged="VolChanged" DragCompleted="DragCompleted"></Slider>
                     </VerticalStackLayout>
                 </Frame>
             </VerticalStackLayout>

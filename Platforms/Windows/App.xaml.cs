@@ -1,6 +1,7 @@
 ﻿using izolabella.Music.Platforms.Windows;
 using izolabella.Music.Structure.Clients;
 using izolabella.Music.Structure.Music.Songs;
+using Microsoft.Maui.Controls;
 using Microsoft.UI.Xaml;
 using NAudio.Wave;
 using System.Reflection;
@@ -30,15 +31,19 @@ namespace izolabella.LoFi.App.WinUI
             //    //P.StartAsync();
             //}
 
-            new Task(() => this.ControlSongLoop()).Start();
+            MainPage.VolumeChanged += async (Vol) =>
+            {
+                while(this.Player == null)
+                {
+                    await Task.Delay(50);
+                }
+                this.Player?.SetVolume((float)Vol);
+            };
+            this.ServerQueue = MainPage.Client.GetServerQueue().Result ?? new();
+            this.ControlSongLoop();
         }
 
-        private int from = 0;
-        public int From
-        {
-            get => this.Last != null && this.Last.FileSize > this.from ? this.from : 0;
-            set => this.from = this.Last != null && this.Last.FileSize < value ? 0 : value;
-        }
+        private int From { get; set; } = 0;
 
         public TimeSpan BufferDur { get; } = TimeSpan.FromSeconds(15);
 
@@ -46,51 +51,62 @@ namespace izolabella.LoFi.App.WinUI
 
         public int BufferSize => (int)this.Max / 4;
 
-        public IzolabellaSong? Last { get; private set; }
+        public List<IzolabellaSong> ServerQueue { get; set; }
+
+        public IzolabellaSong? CurrentlyPlaying => this.ServerQueue.FirstOrDefault();
+
+        public TimeSpan TimeLeft => this.CurrentlyPlaying != null ? this.CurrentlyPlaying.FileInformation.FileDuration.Subtract(this.CurrentlyPlaying.GetTimeFromByteLength(this.From)) : TimeSpan.Zero;
+
         public WindowsMusicPlayer? Player { get; private set; }
 
-        public double MaxQueue => 20;
+        public TimeSpan TimeToFinish => this.CurrentlyPlaying?.GetTimeFromByteLength(this.CurrentlyPlaying.FileInformation.LengthInBytes - this.From) ?? TimeSpan.Zero;
 
-        public List<IEnumerable<byte>> Queue { get; private set; } = new();
+        private async Task<bool> UpdateSong()
+        {
+            if(this.TimeToFinish <= TimeSpan.Zero)
+            {
+                this.From = 0;
+                this.ServerQueue.Add(this.ServerQueue.ElementAt(0));
+                this.ServerQueue.RemoveAt(0);
+                if(this.CurrentlyPlaying != null)
+                {
+                    if(this.Player != null)
+                    {
+                        this.Player.Dispose();
+                    }
+                    this.Player = new WindowsMusicPlayer(this.CurrentlyPlaying, this.BufferDur);
+                    await this.Player.StartAsync();
+                }
+                return true;
+            }
+            return false;
+        }
 
         private async void ControlSongLoop()
         {
-            this.Last ??= await MainPage.Client.GetCurrentlyPlayingAsync();
-            if (this.Last != null)
+            bool SongUpdated = await this.UpdateSong();
+            if (this.CurrentlyPlaying != null)
             {
-                MainPage.SetNP(this.Last);
-                if (this.Player == null)
+                this.Player ??= new(this.CurrentlyPlaying, this.BufferDur);
+                MainPage.MPSet(this.CurrentlyPlaying, this.TimeToFinish);
+                byte[] Feed = await this.FillArrayAsync(this.CurrentlyPlaying);
+                TimeSpan WaitFor = TimeSpan.FromSeconds(1);
+                if (!SongUpdated && this.Player.Provider.BufferedDuration != TimeSpan.Zero)
                 {
-                    this.Player = new WindowsMusicPlayer(this.Last, this.BufferDur);
-                    await this.Player.StartAsync();
+                    WaitFor = this.Player.Provider.BufferedDuration.Subtract(TimeSpan.FromMilliseconds(20));
                 }
-                await this.FillArrayAsync();
-                byte[] Feed = this.Queue.ToList().Take(this.BufferSize).SelectMany(B => B.ToList()).ToArray();
-                if(this.Player.Provider.BufferedDuration != TimeSpan.Zero)
-                {
-                    await Task.Delay(this.Player.Provider.BufferedDuration.Subtract(TimeSpan.FromMilliseconds(20)));
-                }
+                Thread.Sleep((int)WaitFor.TotalMilliseconds);
+                await Task.Delay(WaitFor);
                 await this.Player.FeedBytesAsync(Feed);
-                if (this.Queue.Count >= this.BufferSize)
-                {
-                    this.Queue.RemoveRange(0, this.BufferSize);
-                }
-                else
-                {
-                    this.Queue.Clear();
-                }
-                this.ControlSongLoop();
             }
+            this.ControlSongLoop();
         }
 
-        private async Task FillArrayAsync()
+        private async Task<byte[]> FillArrayAsync(IzolabellaSong Current)
         {
-            if(this.Queue.Count < this.MaxQueue)
-            {
-                byte[] Feed = await MainPage.Client.GetBytesAsync(null, this.From, (int)this.Max);
-                this.From += Feed.Length;
-                this.Queue.Add(Feed);
-            }
+            byte[] Feed = await MainPage.Client.GetBytesAsync(Current.Id, this.From, (int)this.Max);
+            this.From += Feed.Length;
+            return Feed;
         }
 
         protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
