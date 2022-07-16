@@ -35,13 +35,15 @@ namespace izolabella.LoFi.App.WinUI
             {
                 while(this.Player == null)
                 {
-                    await Task.Delay(50);
+                    await Task.Delay(200);
                 }
                 this.Player?.SetVolume((float)Vol);
             };
             this.ServerQueue = MainPage.Client.GetServerQueue().Result ?? new();
             this.ControlSongLoop();
         }
+
+        protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
 
         private int From { get; set; } = 0;
 
@@ -95,7 +97,6 @@ namespace izolabella.LoFi.App.WinUI
                 {
                     WaitFor = this.Player.Provider.BufferedDuration.Subtract(TimeSpan.FromMilliseconds(20));
                 }
-                Thread.Sleep((int)WaitFor.TotalMilliseconds);
                 await Task.Delay(WaitFor);
                 await this.Player.FeedBytesAsync(Feed);
             }
@@ -108,7 +109,5 @@ namespace izolabella.LoFi.App.WinUI
             this.From += Feed.Length;
             return Feed;
         }
-
-        protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
     }
 }

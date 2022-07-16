@@ -1,6 +1,8 @@
 ﻿using Android.App;
 using Android.Content.PM;
 using Android.OS;
+using izolabella.Music.Platforms.Android;
+using izolabella.Music.Structure.Music.Songs;
 
 namespace izolabella.LoFi.App
 {
