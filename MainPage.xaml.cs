@@ -32,7 +32,7 @@ namespace izolabella.LoFi.App
         public delegate Task ChangeVolumeHandler(double NewVol);
         public static event ChangeVolumeHandler? VolumeChanged;
 
-        public static IzolabellaLoFiClient Client { get; } = new("942A87516E403D09B58C575784434BD3412FB66E8ACFA6F973427AE8E0A1B371");
+        #endregion
 
         private static IzolabellaSong? MusicPlayerSetSong { get; set; }
         private static TimeSpan? TimeLeft { get; set; }
