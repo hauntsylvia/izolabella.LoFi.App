@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using izolabella.Music.Structure.Clients;
 using izolabella.Music.Structure.Music.Songs;
+using izolabella.Music.Structure.Requests;
 
 namespace izolabella.LoFi.App
 {
@@ -13,19 +14,40 @@ namespace izolabella.LoFi.App
             this.DefaultSongNameLabelOpacity = SongNameLabel.Opacity;
             this.DefaultArtistNameLabelOpacity = ArtistNameLabel.Opacity;
             this.DefaultVolumeSliderOpacity = VolumeSlider.Opacity;
-            SongNameLabel.Opacity = 0;
-            ArtistNameLabel.Opacity = 0;
-            VolumeSlider.Opacity = 0;
-            VolumeSlider.Value = 0;
+            this.SongNameLabel.Opacity = 0;
+            this.ArtistNameLabel.Opacity = 0;
+            this.VolumeSlider.Opacity = 0;
+            this.VolumeSlider.Value = 0;
             VolumeChangedSlider = VolumeSlider;
 
-            this.StartCurrentlyPlayingLoop(null);
+            this.StartCurrentlyPlayingLoop(null, null, null);
             VolumeChanged += this.MainPageVolumeChange;
+
+            MainPage.Client.OnError += this.NetError;
         }
 
+        public static IzolabellaLoFiClient Client { get; } = new("942A87516E403D09B58C575784434BD3412FB66E8ACFA6F973427AE8E0A1B371");
+
+        private static IzolabellaSong? MusicPlayerSetSong { get; set; }
+
+        private static bool Error { get; set; }
+
+        private static TimeSpan TimeLeft { get; set; } = TimeSpan.Zero;
+
+        public delegate Task MusicPlayersNeedToReconnectHandler();
+        public static event MusicPlayersNeedToReconnectHandler? OnReconnect;
+
+        #region element defaults
+
         public double DefaultSongNameLabelOpacity { get; }
+
         public double DefaultArtistNameLabelOpacity { get; }
+
         public double DefaultVolumeSliderOpacity { get; }
+
+        #endregion
+
+        #region volume helpers
 
         public static Slider? VolumeChangedSlider { get; private set; }
 
@@ -34,10 +56,11 @@ namespace izolabella.LoFi.App
 
         #endregion
 
-        private static IzolabellaSong? MusicPlayerSetSong { get; set; }
-        private static TimeSpan? TimeLeft { get; set; }
-
+        #region startup flag
         public static bool LoopOnce { get; set; } = true;
+        #endregion
+
+        #region volume
 
         private async Task MainPageVolumeChange(double NewVol)
         {
@@ -46,7 +69,7 @@ namespace izolabella.LoFi.App
             await VolumeSlider.FadeTo(this.DefaultVolumeSliderOpacity, 250, Easing.CubicInOut);
         }
 
-        private async void AnimateSlider(double NewVal)
+        private async void AnimateVolumeSlider(double NewVal)
         {
             VolumeSlider.Value = 0;
             VolumeSlider.Animate("StartupVolUp", new Animation((V) =>
@@ -64,27 +87,55 @@ namespace izolabella.LoFi.App
             TimeLeft = TimeRemaining;
         }
 
-        public async void StartCurrentlyPlayingLoop(IzolabellaSong? LastPlayed)
+        public async void StartCurrentlyPlayingLoop(IzolabellaSong? LastPlayed, DateTime? LastRanAt, TimeSpan? TimeRemaining)
         {
-            if((LastPlayed != MusicPlayerSetSong || LastPlayed == null) && MusicPlayerSetSong != null && TimeLeft.HasValue)
+            if(Error)
+            {
+                this.SongNameLabel.Text = $"Error";
+                this.ArtistNameLabel.Text = $"Attempting to reconnect . .";
+                new Task(() =>
+                {
+                    this.ArtistNameLabel.FadeTo(1);
+                    this.SongNameLabel.FadeTo(1);
+                    this.VolumeSlider.FadeTo(0);
+                }).Start();
+                Request<List<IzolabellaSong>> A = await MainPage.Client.GetServerQueue();
+                Error = !A.Success;
+                if(!Error)
+                {
+                    OnReconnect?.Invoke();
+                }
+            }
+            else if((LastPlayed != MusicPlayerSetSong || LastPlayed == null) && MusicPlayerSetSong != null)
             {
                 LastPlayed = MusicPlayerSetSong;
-                await SongNameLabel.FadeTo(0, 250, Easing.CubicInOut);
-                await ArtistNameLabel.FadeTo(0, 250, Easing.CubicInOut);
-                await VolumeSlider.FadeTo(0, 250, Easing.CubicInOut);
-                SongNameLabel.Text = MusicPlayerSetSong.Name;
-                ArtistNameLabel.Text = LastPlayed.AuthorNamesConcat;
-                await SongNameLabel.FadeTo(this.DefaultSongNameLabelOpacity, 250, Easing.CubicInOut);
-                await ArtistNameLabel.FadeTo(this.DefaultArtistNameLabelOpacity, 250, Easing.CubicInOut);
-                await VolumeSlider.FadeTo(this.DefaultVolumeSliderOpacity, 250, Easing.CubicInOut);
+                if (TimeRemaining.HasValue && TimeRemaining.Value >= TimeSpan.Zero)
+                {
+                    SetLabels(LastPlayed);
+                }
+                else
+                {
+                    await SongNameLabel.FadeTo(0, 250, Easing.CubicInOut);
+                    await ArtistNameLabel.FadeTo(0, 250, Easing.CubicInOut);
+                    await VolumeSlider.FadeTo(0, 250, Easing.CubicInOut);
+                    SetLabels(LastPlayed);
+                }
                 if (LoopOnce)
                 {
-                    this.AnimateSlider(0.25);
+                    this.AnimateVolumeSlider(0.25);
                 }
-                await Task.Delay(delay: TimeLeft.Value < TimeSpan.Zero ? TimeSpan.Zero : TimeLeft.Value);
             }
             await Task.Delay(TimeSpan.FromSeconds(1));
-            this.StartCurrentlyPlayingLoop(LastPlayed);
+            this.StartCurrentlyPlayingLoop(LastPlayed, DateTime.UtcNow, LastPlayed != null && LastRanAt != null ? DateTime.UtcNow.Subtract(LastRanAt.Value) : LastPlayed?.FileInformation.FileDuration);
+        }
+
+        private async void SetLabels(IzolabellaSong LastPlayed)
+        {
+            SongNameLabel.Text = LastPlayed.Name;
+            ArtistNameLabel.Text = LastPlayed.AuthorNamesConcat;
+            await SongNameLabel.FadeTo(this.DefaultSongNameLabelOpacity, 250, Easing.CubicInOut);
+            await ArtistNameLabel.FadeTo(this.DefaultArtistNameLabelOpacity, 250, Easing.CubicInOut);
+            await VolumeSlider.FadeTo(this.DefaultVolumeSliderOpacity, 250, Easing.CubicInOut);
         }
 
         public static float GetCurrentVolume()
@@ -98,6 +149,14 @@ namespace izolabella.LoFi.App
             {
                 VolumeChanged?.Invoke(Math.Pow((double)VolGain, 1.2));
             }
+        }
+
+        #endregion
+
+        private void NetError(Exception Ex)
+        {
+            MusicPlayerSetSong = null;
+            Error = true;
         }
 
         /// <summary>

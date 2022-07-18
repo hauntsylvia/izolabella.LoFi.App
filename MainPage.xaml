@@ -3,7 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:y="clr-namespace:izolabella.LoFi.App"
              x:Class="izolabella.LoFi.App.MainPage"
-             Shell.NavBarIsVisible="False">
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="#000000">
 
     <Shell.TitleView>
         <Label Text="izolabella.LoFi.App" HorizontalOptions="Center"></Label>
@@ -18,6 +19,7 @@
                 SemanticProperties.Description="!!"
                 Aspect="AspectFill"
                 Opacity="0.35"
+                BackgroundColor="#000000"
                 ZIndex="0">
             </Image>
             <VerticalStackLayout Padding="20" Spacing="10" ZIndex="1"
@@ -25,13 +27,12 @@
                 <Frame HorizontalOptions="Center" MaximumHeightRequest="175" MinimumHeightRequest="175" 
                        VerticalOptions="Center" x:Name="Resize">
                     <VerticalStackLayout VerticalOptions="Start" ZIndex="3" WidthRequest="300">
-                        <Label Text="Song Name" x:Name="SongNameLabel" Opacity="0.8" FontSize="18" CharacterSpacing="1.75" ZIndex="4"/>
-                        <Label Text="Artist" x:Name="ArtistNameLabel" Opacity="0.5" FontSize="15" CharacterSpacing="1.75" ZIndex="4"/>
-                        <Slider Value="0" x:Name="VolumeSlider" WidthRequest="150" HorizontalOptions="Start" Opacity="0.8" ValueChanged="VolChanged" DragCompleted="DragCompleted"></Slider>
+                        <Label BackgroundColor="Transparent" Text="Song Name" x:Name="SongNameLabel" Opacity="0.8" FontSize="18" CharacterSpacing="1.75" ZIndex="4"/>
+                        <Label BackgroundColor="Transparent" Text="Artist" x:Name="ArtistNameLabel" Opacity="0.5" FontSize="15" CharacterSpacing="1.75" ZIndex="4"/>
+                        <Slider BackgroundColor="Transparent" Value="0" x:Name="VolumeSlider" WidthRequest="150" HorizontalOptions="Start" Opacity="0.8" ValueChanged="VolChanged" DragCompleted="DragCompleted"></Slider>
                     </VerticalStackLayout>
                 </Frame>
             </VerticalStackLayout>
         </Grid>
     </ContentView>
- 
 </ContentPage>

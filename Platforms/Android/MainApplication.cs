@@ -3,6 +3,8 @@ using Android.OS;
 using Android.Runtime;
 using izolabella.Music.Platforms.Android;
 using izolabella.Music.Structure.Music.Songs;
+using izolabella.Music.Structure.Requests;
+using static Android.Net.Wifi.WifiEnterpriseConfig;
 using static Android.OS.PowerManager;
 
 namespace izolabella.LoFi.App
@@ -13,11 +15,6 @@ namespace izolabella.LoFi.App
         public MainApplication(IntPtr Handle, JniHandleOwnership Ownership)
             : base(Handle, Ownership)
         {
-            //Stream S = FileSystem.OpenAppPackageFileAsync("MidnightVisitors.wav").Result;
-            //AndroidMusicPlayer A = new(, Android.Media.ChannelOut.Stereo);
-            //new Task(async () => await A.StartAsync()).Start();
-
-
             MainPage.VolumeChanged += async (Vol) =>
             {
                 while (this.Player == null)
@@ -26,17 +23,20 @@ namespace izolabella.LoFi.App
                 }
                 this.Player?.SetVolume((float)Vol);
             };
-            PowerManager PM = (PowerManager)GetSystemService(PowerService);
-            this.Lock = PM.NewWakeLock(WakeLockFlags.ScreenDim, "WLOCK");
-            this.Lock.Acquire();
+            PowerManager? PM = (PowerManager?)GetSystemService(PowerService);
+            this.Lock = PM?.NewWakeLock(WakeLockFlags.ScreenDim, "WLOCK");
+            this.Lock?.Acquire();
+            MainPage.OnReconnect += this.ReconnectAsync;
             this.StartControlLoop();
         }
+        
+        public bool Reconnect { get; set; }
 
         public WakeLock? Lock { get; }
 
         protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
 
-        public Task<List<IzolabellaSong>?> Songs => MainPage.Client.GetServerQueue();
+        public static Task<Request<List<IzolabellaSong>>> Songs => MainPage.Client.GetServerQueue();
 
         public IzolabellaSong? NowPlaying { get; set; }
 
@@ -48,23 +48,34 @@ namespace izolabella.LoFi.App
 
         public DateTime StartedAt { get; private set; } = DateTime.MinValue;
 
+        private Task ReconnectAsync()
+        {
+            this.Reconnect = true;
+            return Task.CompletedTask;
+        }
+
         public async Task<bool> UpdateSong()
         {
             bool SongOver = this.NowPlaying != null && this.Player != null && this.BytesIndex >= this.Player.File.FileInformation.LengthInBytes;
-            if (this.NowPlaying == null || SongOver)
+            if (this.NowPlaying == null || SongOver || this.Reconnect)
             {
+                this.Reconnect = false;
                 if(SongOver)
                 {
                     this.BytesIndex = 0;
                     await Task.Delay(TimeSpan.FromSeconds(2));
                 }
-                this.NowPlaying = (await (this.Songs ?? Task.FromResult<List<IzolabellaSong>?>(new())))?.FirstOrDefault();
-                if(this.NowPlaying != null)
+                Request<List<IzolabellaSong>> Q = await Songs;
+                if(Q.Success)
                 {
-                    MainPage.MPSet(this.NowPlaying, this.NowPlaying.FileInformation.FileDuration);
+                    this.NowPlaying = Q.Result.FirstOrDefault();
+                    if (this.NowPlaying != null)
+                    {
+                        MainPage.MPSet(this.NowPlaying, this.NowPlaying.FileInformation.FileDuration);
+                    }
+                    this.StartedAt = DateTime.UtcNow;
+                    return true;
                 }
-                this.StartedAt = DateTime.UtcNow;
-                return true;
             }
             return false;
         }
@@ -74,25 +85,32 @@ namespace izolabella.LoFi.App
             bool SongNeededToBeUpdated = await this.UpdateSong();
             if (this.NowPlaying != null)
             {
-                this.Player ??= new AndroidMusicPlayer(this.NowPlaying, Android.Media.ChannelOut.Stereo);
-                byte[] From = await MainPage.Client.GetBytesAsync(this.NowPlaying.Id, this.BytesIndex, BufferSize);
-                this.BytesIndex += From.Length; 
-                if(!SongNeededToBeUpdated && ExpectedEnd.HasValue)
+                this.Player ??= new AndroidMusicPlayer(this.NowPlaying, Android.Media.ChannelOut.Stereo, this.BufferSize);
+                Request<byte[]> From = await MainPage.Client.GetBytesAsync(this.NowPlaying.Id, this.BytesIndex, BufferSize);
+                if(From.Success)
                 {
-                    TimeSpan A = ExpectedEnd.Value.Subtract(DateTime.UtcNow);
-                    await Task.Delay(A < TimeSpan.Zero ? TimeSpan.Zero : A);
+                    this.BytesIndex += From.Result.Length;
+                    if (!SongNeededToBeUpdated && ExpectedEnd.HasValue)
+                    {
+                        TimeSpan A = ExpectedEnd.Value.Subtract(DateTime.UtcNow);
+                        await Task.Delay(A < TimeSpan.Zero ? TimeSpan.Zero : A);
+                    }
+                    if (SongNeededToBeUpdated)
+                    {
+                        float PreVol = this.Player.Volume;
+                        this.Player.Dispose();
+                        this.Player = new(this.NowPlaying, Android.Media.ChannelOut.Stereo, this.BufferSize);
+                        await this.Player.SetVolume(PreVol);
+                    }
+                    this.Lock?.Acquire();
+                    await Player.FeedBytesAsync(From.Result);
+                    DateTime Exp = DateTime.UtcNow.Add(this.Player.File.GetTimeFromByteLength(From.Result.LongLength));
+                    this.StartControlLoop(Exp);
                 }
-                if (SongNeededToBeUpdated)
+                else
                 {
-                    float PreVol = this.Player.Volume;
-                    this.Player.Dispose();
-                    this.Player = new(this.NowPlaying, Android.Media.ChannelOut.Stereo);
-                    await this.Player.SetVolume(PreVol);
+                    this.StartControlLoop();
                 }
-                this.Lock?.Acquire();
-                await Player.FeedBytesAsync(From);
-                DateTime Exp = DateTime.UtcNow.Add(this.Player.File.GetTimeFromByteLength(From.Length));
-                this.StartControlLoop(Exp);
             }
             else
             {

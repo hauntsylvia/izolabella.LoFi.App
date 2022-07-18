@@ -1,4 +1,8 @@
-﻿namespace izolabella.LoFi.App
+﻿using System.Reflection;
+using izolabella.Music.Structure.Clients;
+using izolabella.Music.Structure.Music.Songs;
+
+namespace izolabella.LoFi.App
 {
     public static class MauiProgram
     {

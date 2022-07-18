@@ -1,6 +1,7 @@
 ﻿using izolabella.Music.Platforms.Windows;
 using izolabella.Music.Structure.Clients;
 using izolabella.Music.Structure.Music.Songs;
+using izolabella.Music.Structure.Requests;
 using Microsoft.Maui.Controls;
 using Microsoft.UI.Xaml;
 using NAudio.Wave;
@@ -39,7 +40,7 @@ namespace izolabella.LoFi.App.WinUI
                 }
                 this.Player?.SetVolume((float)Vol);
             };
-            this.ServerQueue = MainPage.Client.GetServerQueue().Result ?? new();
+            this.ServerQueue = MainPage.Client.GetServerQueue().Result.Result ?? new();
             this.ControlSongLoop();
         }
 
@@ -91,22 +92,28 @@ namespace izolabella.LoFi.App.WinUI
             {
                 this.Player ??= new(this.CurrentlyPlaying, this.BufferDur);
                 MainPage.MPSet(this.CurrentlyPlaying, this.TimeToFinish);
-                byte[] Feed = await this.FillArrayAsync(this.CurrentlyPlaying);
-                TimeSpan WaitFor = TimeSpan.FromSeconds(1);
-                if (!SongUpdated && this.Player.Provider.BufferedDuration != TimeSpan.Zero)
+                Request<byte[]> Feed = await this.FillArrayAsync(this.CurrentlyPlaying);
+                if(Feed.Success)
                 {
-                    WaitFor = this.Player.Provider.BufferedDuration.Subtract(TimeSpan.FromMilliseconds(20));
+                    TimeSpan WaitFor = TimeSpan.FromSeconds(1);
+                    if (!SongUpdated && this.Player.Provider.BufferedDuration != TimeSpan.Zero)
+                    {
+                        WaitFor = this.Player.Provider.BufferedDuration.Subtract(TimeSpan.FromMilliseconds(20));
+                    }
+                    await Task.Delay(WaitFor);
+                    await this.Player.FeedBytesAsync(Feed.Result);
                 }
-                await Task.Delay(WaitFor);
-                await this.Player.FeedBytesAsync(Feed);
             }
             this.ControlSongLoop();
         }
 
-        private async Task<byte[]> FillArrayAsync(IzolabellaSong Current)
+        private async Task<Request<byte[]>> FillArrayAsync(IzolabellaSong Current)
         {
-            byte[] Feed = await MainPage.Client.GetBytesAsync(Current.Id, this.From, (int)this.Max);
-            this.From += Feed.Length;
+            Request<byte[]> Feed = await MainPage.Client.GetBytesAsync(Current.Id, this.From, (int)this.Max);
+            if(Feed.Success)
+            {
+                this.From += Feed.Result.Length;
+            }
             return Feed;
         }
     }
