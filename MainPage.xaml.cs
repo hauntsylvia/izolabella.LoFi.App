@@ -26,13 +26,13 @@ namespace izolabella.LoFi.App
             MainPage.Client.OnError += this.NetError;
         }
 
-        public static IzolabellaLoFiClient Client { get; } = new("942A87516E403D09B58C575784434BD3412FB66E8ACFA6F973427AE8E0A1B371");
+        public static string DevAuth => "942A87516E403D09B58C575784434BD3412FB66E8ACFA6F973427AE8E0A1B371";
+
+        public static IzolabellaLoFiClient Client { get; private set; } = new(DevAuth);
 
         private static IzolabellaSong? MusicPlayerSetSong { get; set; }
 
         private static bool Error { get; set; }
-
-        private static TimeSpan TimeLeft { get; set; } = TimeSpan.Zero;
 
         public delegate Task MusicPlayersNeedToReconnectHandler();
         public static event MusicPlayersNeedToReconnectHandler? OnReconnect;
@@ -84,7 +84,6 @@ namespace izolabella.LoFi.App
         public static void MPSet(IzolabellaSong Song, TimeSpan TimeRemaining)
         {
             MusicPlayerSetSong = Song;
-            TimeLeft = TimeRemaining;
         }
 
         public async void StartCurrentlyPlayingLoop(IzolabellaSong? LastPlayed, DateTime? LastRanAt, TimeSpan? TimeRemaining)
