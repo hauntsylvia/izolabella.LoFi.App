@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using izolabella.Music.Structure.Clients;
 using izolabella.Music.Structure.Music.Songs;
+using izolabella.Music.Structure.Players;
 
 namespace izolabella.LoFi.App
 {

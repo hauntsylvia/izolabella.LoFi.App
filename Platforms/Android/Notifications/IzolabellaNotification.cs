@@ -8,17 +8,20 @@ using Android.Content;
 
 namespace izolabella.LoFi.App.Platforms.Android.Notifications
 {
-    public class IzolabellaNotification : Notification.Builder
+    public class IzolabellaNotification
     {
-        public IzolabellaNotification(Context Context, IzolabellaNotificationChannel Channel) : base(Context, channelId: Channel.Id)
+        public IzolabellaNotification(Context Context, IzolabellaNotificationChannel Channel)
         {
+            this.Inner = OperatingSystem.IsAndroidVersionAtLeast(26) ? (new(Context, channelId: Channel.Id)) : throw new PlatformNotSupportedException();
         }
+
+        private Notification.Builder Inner { get; }
 
         public static Notification.Builder Factory(Context Context, IzolabellaNotificationChannel Channel)
         {
-            return new IzolabellaNotification(Context, Channel)
+            return OperatingSystem.IsAndroidVersionAtLeast(26) ? new IzolabellaNotification(Context, Channel).Inner
                     .SetContentTitle("LoFi . .")
-                    .SetChannelId(Channel.Id);
+                    .SetChannelId(Channel.Id) : throw new PlatformNotSupportedException();
         }
     }
 }

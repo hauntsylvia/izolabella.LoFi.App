@@ -1,5 +1,6 @@
 ﻿using izolabella.Music.Platforms.Windows;
 using izolabella.Music.Structure.Clients;
+using izolabella.Music.Structure.Music.Artists;
 using izolabella.Music.Structure.Music.Songs;
 using izolabella.Music.Structure.Requests;
 using Microsoft.Maui.Controls;
@@ -40,7 +41,6 @@ namespace izolabella.LoFi.App.WinUI
                 }
                 this.Player?.SetVolume((float)Vol);
             };
-            this.ServerQueue = MainPage.Client.GetServerQueue().Result.Result ?? new();
             this.ControlSongLoop();
         }
 
@@ -54,9 +54,10 @@ namespace izolabella.LoFi.App.WinUI
 
         public int BufferSize => (int)this.Max / 4;
 
-        public List<IzolabellaSong> ServerQueue { get; set; }
+        public List<IzolabellaSong>? ServerQueue { get; set; }
 
-        public IzolabellaSong? CurrentlyPlaying => this.ServerQueue.FirstOrDefault();
+        public IzolabellaSong? CurrentlyPlaying => this.ServerQueue?.FirstOrDefault();
+        public IEnumerable<IzolabellaAuthor>? CurrentlyPlayingAuthors { get; private set; }
 
         public TimeSpan TimeLeft => this.CurrentlyPlaying != null ? this.CurrentlyPlaying.FileInformation.FileDuration.Subtract(this.CurrentlyPlaying.GetTimeFromByteLength(this.From)) : TimeSpan.Zero;
 
@@ -68,11 +69,17 @@ namespace izolabella.LoFi.App.WinUI
         {
             if(this.TimeToFinish <= TimeSpan.Zero)
             {
+                this.ServerQueue ??= (await MainPage.Client.GetServerQueue()).Result ?? new();
                 this.From = 0;
                 this.ServerQueue.Add(this.ServerQueue.ElementAt(0));
                 this.ServerQueue.RemoveAt(0);
                 if(this.CurrentlyPlaying != null)
                 {
+                    Request<List<IzolabellaAuthor>> AuthorsReq = await MainPage.Client.GetSongAuthorsAsync(this.CurrentlyPlaying.Id);
+                    if(AuthorsReq.Success)
+                    {
+                        this.CurrentlyPlayingAuthors = AuthorsReq.Result;
+                    }
                     if(this.Player != null)
                     {
                         this.Player.Dispose();
@@ -88,17 +95,17 @@ namespace izolabella.LoFi.App.WinUI
         private async void ControlSongLoop()
         {
             bool SongUpdated = await this.UpdateSong();
-            if (this.CurrentlyPlaying != null)
+            if (this.CurrentlyPlaying != null && this.CurrentlyPlayingAuthors != null)
             {
                 this.Player ??= new(this.CurrentlyPlaying, this.BufferDur);
-                MainPage.MPSet(this.CurrentlyPlaying, this.TimeToFinish);
+                MainPage.MPSet(this.CurrentlyPlaying, this.CurrentlyPlayingAuthors, this.TimeToFinish);
                 Request<byte[]> Feed = await this.FillArrayAsync(this.CurrentlyPlaying);
                 if(Feed.Success)
                 {
                     TimeSpan WaitFor = TimeSpan.FromSeconds(1);
                     if (!SongUpdated && this.Player.Provider.BufferedDuration != TimeSpan.Zero)
                     {
-                        WaitFor = this.Player.Provider.BufferedDuration.Subtract(TimeSpan.FromMilliseconds(20));
+                        WaitFor = this.Player.Provider.BufferedDuration.Subtract(TimeSpan.FromMilliseconds(10));
                     }
                     await Task.Delay(WaitFor);
                     await this.Player.FeedBytesAsync(Feed.Result);

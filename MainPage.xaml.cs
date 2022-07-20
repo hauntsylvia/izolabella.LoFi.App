@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using izolabella.Music.Structure.Clients;
+using izolabella.Music.Structure.Music.Artists;
 using izolabella.Music.Structure.Music.Songs;
 using izolabella.Music.Structure.Requests;
 
@@ -20,7 +21,7 @@ namespace izolabella.LoFi.App
             this.VolumeSlider.Value = 0;
             VolumeChangedSlider = VolumeSlider;
 
-            this.StartCurrentlyPlayingLoop(null, null, null);
+            this.StartCurrentlyPlayingLoop(null, null, null, null);
             VolumeChanged += this.MainPageVolumeChange;
 
             MainPage.Client.OnError += this.NetError;
@@ -31,6 +32,7 @@ namespace izolabella.LoFi.App
         public static IzolabellaLoFiClient Client { get; private set; } = new(DevAuth);
 
         private static IzolabellaSong? MusicPlayerSetSong { get; set; }
+        private static IEnumerable<IzolabellaAuthor>? MusicPlayerSetAuthors { get; set; }
 
         private static bool Error { get; set; }
 
@@ -81,12 +83,13 @@ namespace izolabella.LoFi.App
             await Task.CompletedTask;
         }
 
-        public static void MPSet(IzolabellaSong Song, TimeSpan TimeRemaining)
+        public static void MPSet(IzolabellaSong Song, IEnumerable<IzolabellaAuthor> Authors, TimeSpan TimeRemaining)
         {
             MusicPlayerSetSong = Song;
+            MusicPlayerSetAuthors = Authors;
         }
 
-        public async void StartCurrentlyPlayingLoop(IzolabellaSong? LastPlayed, DateTime? LastRanAt, TimeSpan? TimeRemaining)
+        public async void StartCurrentlyPlayingLoop(IzolabellaSong? LastPlayed, IEnumerable<IzolabellaAuthor>? Authors, DateTime? LastRanAt, TimeSpan? TimeRemaining)
         {
             if(Error)
             {
@@ -105,19 +108,20 @@ namespace izolabella.LoFi.App
                     OnReconnect?.Invoke();
                 }
             }
-            else if((LastPlayed != MusicPlayerSetSong || LastPlayed == null) && MusicPlayerSetSong != null)
+            else if((LastPlayed != MusicPlayerSetSong || LastPlayed == null || Authors == null) && MusicPlayerSetSong != null && MusicPlayerSetAuthors != null)
             {
                 LastPlayed = MusicPlayerSetSong;
+                Authors = MusicPlayerSetAuthors;
                 if (TimeRemaining.HasValue && TimeRemaining.Value >= TimeSpan.Zero)
                 {
-                    SetLabels(LastPlayed);
+                    SetLabels(LastPlayed, Authors);
                 }
                 else
                 {
                     await SongNameLabel.FadeTo(0, 250, Easing.CubicInOut);
                     await ArtistNameLabel.FadeTo(0, 250, Easing.CubicInOut);
                     await VolumeSlider.FadeTo(0, 250, Easing.CubicInOut);
-                    SetLabels(LastPlayed);
+                    SetLabels(LastPlayed, Authors);
                 }
                 if (LoopOnce)
                 {
@@ -125,13 +129,13 @@ namespace izolabella.LoFi.App
                 }
             }
             await Task.Delay(TimeSpan.FromSeconds(1));
-            this.StartCurrentlyPlayingLoop(LastPlayed, DateTime.UtcNow, LastPlayed != null && LastRanAt != null ? DateTime.UtcNow.Subtract(LastRanAt.Value) : LastPlayed?.FileInformation.FileDuration);
+            this.StartCurrentlyPlayingLoop(LastPlayed, Authors, DateTime.UtcNow, LastPlayed != null && LastRanAt != null ? DateTime.UtcNow.Subtract(LastRanAt.Value) : LastPlayed?.FileInformation.FileDuration);
         }
 
-        private async void SetLabels(IzolabellaSong LastPlayed)
+        private async void SetLabels(IzolabellaSong LastPlayed, IEnumerable<IzolabellaAuthor> Authors)
         {
             SongNameLabel.Text = LastPlayed.Name;
-            ArtistNameLabel.Text = LastPlayed.AuthorNamesConcat;
+            ArtistNameLabel.Text = IzolabellaSong.GetAuthorDisplay(Authors);
             await SongNameLabel.FadeTo(this.DefaultSongNameLabelOpacity, 250, Easing.CubicInOut);
             await ArtistNameLabel.FadeTo(this.DefaultArtistNameLabelOpacity, 250, Easing.CubicInOut);
             await VolumeSlider.FadeTo(this.DefaultVolumeSliderOpacity, 250, Easing.CubicInOut);

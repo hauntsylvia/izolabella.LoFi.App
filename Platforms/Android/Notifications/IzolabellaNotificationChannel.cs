@@ -26,7 +26,9 @@ namespace izolabella.LoFi.App.Platforms.Android.Notifications
 
         public NotificationChannel Build()
         {
-            return new NotificationChannel(this.Id, this.Name, NotificationImportance.Max);
+            return OperatingSystem.IsAndroidVersionAtLeast(26) ?
+                new NotificationChannel(this.Id, this.Name, NotificationImportance.Max) :
+                throw new PlatformNotSupportedException();
         }
     }
 }

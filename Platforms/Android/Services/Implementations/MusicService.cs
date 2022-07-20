@@ -16,10 +16,11 @@ using static Android.Media.ChannelOut;
 using Android.Media;
 using Android.Content.PM;
 using izolabella.LoFi.App.Platforms.Android.Notifications;
+using izolabella.Music.Structure.Music.Artists;
 
 namespace izolabella.LoFi.App.Platforms.Android.Services.Implementations
 {
-    [Service(Name = $"com.izolabella.LoFi.MusicService", Exported = true, ForegroundServiceType = ForegroundService.TypeMediaPlayback)]
+    [Service(Name = $"com.izolabella.LoFi.{nameof(MusicService)}", Exported = true, ForegroundServiceType = ForegroundService.TypeMediaPlayback)]
     public class MusicService : Service
     {
         public bool Reconnect { get; set; }
@@ -27,6 +28,7 @@ namespace izolabella.LoFi.App.Platforms.Android.Services.Implementations
         public static Task<Request<List<IzolabellaSong>>> Songs => MainPage.Client.GetServerQueue();
 
         public IzolabellaSong? NowPlaying { get; set; }
+        public IEnumerable<IzolabellaAuthor>? NowPlayingAuthors { get; private set; }
 
         public AndroidMusicPlayer? Player { get; private set; }
 
@@ -127,7 +129,12 @@ namespace izolabella.LoFi.App.Platforms.Android.Services.Implementations
                     this.NowPlaying = Q.Result.FirstOrDefault();
                     if (this.NowPlaying != null)
                     {
-                        MainPage.MPSet(this.NowPlaying, this.NowPlaying.FileInformation.FileDuration);
+                        Request<List<IzolabellaAuthor>> A = await MainPage.Client.GetSongAuthorsAsync(this.NowPlaying.Id);
+                        if(A.Success)
+                        {
+                            this.NowPlayingAuthors = A.Result;
+                            MainPage.MPSet(this.NowPlaying, this.NowPlayingAuthors, this.NowPlaying.FileInformation.FileDuration);
+                        }
                     }
                     this.StartedAt = DateTime.UtcNow;
                     return true;
