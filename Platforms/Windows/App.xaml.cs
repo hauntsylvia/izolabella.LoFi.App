@@ -25,23 +25,15 @@ namespace izolabella.LoFi.App.WinUI
         public App()
         {
             this.InitializeComponent();
-            //string? Dir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            //if (Dir != null)
+            //MainPage.VolumeChanged += async (Vol) =>
             //{
-            //    //Stream S = new FileStream(Path.Combine(Dir, "MidnightVisitors.wav"), FileMode.Open, FileAccess.ReadWrite);
-            //    //WindowsMusicPlayer P = new(new(S, 48000, 2));
-            //    //P.StartAsync();
-            //}
-
-            MainPage.VolumeChanged += async (Vol) =>
-            {
-                while(this.Player == null)
-                {
-                    await Task.Delay(200);
-                }
-                this.Player?.SetVolume((float)Vol);
-            };
-            this.ControlSongLoop();
+            //    while(this.Player == null)
+            //    {
+            //        await Task.Delay(200);
+            //    }
+            //    this.Player?.SetVolume((float)Vol);
+            //};
+            //this.ControlSongLoop();
         }
 
         protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();

@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Android.App;
 using Android.Content;
 using Android.OS;
-using izolabella.LoFi.App.Platforms.Android.Services.Interfaces;
 using izolabella.Music.Platforms.Android;
 using izolabella.Music.Structure.Music.Songs;
 using izolabella.Music.Structure.Requests;
@@ -42,13 +41,6 @@ namespace izolabella.LoFi.App.Platforms.Android.Services.Implementations
         {
             return new Binder();
         }
-
-        //public void StartForegroundServiceCompat()
-        //{
-        //    Intent I = new(global::Android.App.Application.Context, typeof(MusicService));
-
-        //    global::Android.App.Application.Context.StartForegroundService(I);
-        //}
 
         public override StartCommandResult OnStartCommand(Intent? I, StartCommandFlags F, int StartId)
         {

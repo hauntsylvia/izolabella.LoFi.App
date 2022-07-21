@@ -2,11 +2,10 @@
 using Android.Content.PM;
 using Android.OS;
 using izolabella.Music.Structure.Music.Songs;
-using izolabella.LoFi.App.Platforms.Android.Services.Interfaces;
 using Android.Content;
 using izolabella.LoFi.App.Platforms.Android.Services.Implementations;
 
-namespace izolabella.LoFi.App
+namespace izolabella.LoFi.App.Platforms.Android
 {
     [Activity(Theme = "@style/Maui.SplashTheme", MainLauncher = true, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
     public class MainActivity : MauiAppCompatActivity
@@ -18,19 +17,19 @@ namespace izolabella.LoFi.App
         public void StartMusicService()
         {
             this.I = new(this, typeof(MusicService));
-            if(OperatingSystem.IsAndroidVersionAtLeast(26))
+            if (OperatingSystem.IsAndroidVersionAtLeast(26))
             {
-                this.StartForegroundService(I);
+                //this.StartForegroundService(I);
             }
             else
             {
-                this.StartService(I);
+                //this.StartService(I);
             }
         }
 
         public void StopMusicService()
         {
-            if(this.I != null)
+            if (this.I != null)
             {
                 this.StopService(this.I);
             }
@@ -38,7 +37,7 @@ namespace izolabella.LoFi.App
 
         protected override void OnCreate(Bundle? SavedInstanceState)
         {
-            if(!AlreadyStarted)
+            if (!AlreadyStarted)
             {
                 AlreadyStarted = true;
                 this.StartMusicService();

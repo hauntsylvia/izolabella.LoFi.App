@@ -1,7 +1,14 @@
 ﻿using System.Reflection;
+using izolabella.LoFi.App.Wide.Services.Implementations;
+#if ANDROID
+using izolabella.Music.Platforms.Android;
+#elif WINDOWS
+using izolabella.Music.Platforms.Windows;
+#endif
 using izolabella.Music.Structure.Clients;
 using izolabella.Music.Structure.Music.Artists;
 using izolabella.Music.Structure.Music.Songs;
+using izolabella.Music.Structure.Players;
 using izolabella.Music.Structure.Requests;
 
 namespace izolabella.LoFi.App
@@ -11,156 +18,49 @@ namespace izolabella.LoFi.App
         public MainPage()
         {
             InitializeComponent();
-
-            this.DefaultSongNameLabelOpacity = SongNameLabel.Opacity;
-            this.DefaultArtistNameLabelOpacity = ArtistNameLabel.Opacity;
-            this.DefaultVolumeSliderOpacity = VolumeSlider.Opacity;
             this.SongNameLabel.Opacity = 0;
             this.ArtistNameLabel.Opacity = 0;
             this.VolumeSlider.Opacity = 0;
             this.VolumeSlider.Value = 0;
-            VolumeChangedSlider = VolumeSlider;
 
-            this.StartCurrentlyPlayingLoop(null, null, null, null);
-            VolumeChanged += this.MainPageVolumeChange;
+            MainPage.Client.OnError += this.ClientErrorAsync;
+            Service = new GenericMusicService((A) =>
+            {
+                MusicPlayer? P = null;
+                if(A.Started)
+                {
+#if WINDOWS
+                    P = new WindowsMusicPlayer(A.Playing, TimeSpan.FromSeconds(15));
+#elif ANDROID
+                    P = new AndroidMusicPlayer(A.Playing, Android.Media.ChannelOut.Stereo, 192000);
+#endif
+                }
+                return P ?? throw new PlatformNotSupportedException();
+            });
+            this.Loaded += this.PageReadyAsync;
+        }
 
-            MainPage.Client.OnError += this.NetError;
+        private void ClientErrorAsync(Exception Ex)
+        {
+            throw new NotImplementedException();
+        }
+
+        private async void PageReadyAsync(object? sender, EventArgs e)
+        {
+            await this.Service.StartAsync();
         }
 
         public static string DevAuth => "942A87516E403D09B58C575784434BD3412FB66E8ACFA6F973427AE8E0A1B371";
+        public static string IzolabellaDevAuth => "F0744E696705C239BAF094C2D754CB3A4A7DDE3B629B07308B53D993F0933395";
 
-        public static IzolabellaLoFiClient Client { get; private set; } = new(DevAuth);
+        public static IzolabellaLoFiClient Client { get; private set; } = new(IzolabellaDevAuth);
 
-        private static IzolabellaSong? MusicPlayerSetSong { get; set; }
-        private static IEnumerable<IzolabellaAuthor>? MusicPlayerSetAuthors { get; set; }
+        public GenericMusicService Service { get; private set; }
 
-        private static bool Error { get; set; }
+#region old
 
         public delegate Task MusicPlayersNeedToReconnectHandler();
         public static event MusicPlayersNeedToReconnectHandler? OnReconnect;
-
-        #region element defaults
-
-        public double DefaultSongNameLabelOpacity { get; }
-
-        public double DefaultArtistNameLabelOpacity { get; }
-
-        public double DefaultVolumeSliderOpacity { get; }
-
-        #endregion
-
-        #region volume helpers
-
-        public static Slider? VolumeChangedSlider { get; private set; }
-
-        public delegate Task ChangeVolumeHandler(double NewVol);
-        public static event ChangeVolumeHandler? VolumeChanged;
-
-        #endregion
-
-        #region startup flag
-        public static bool LoopOnce { get; set; } = true;
-        #endregion
-
-        #region volume
-
-        private async Task MainPageVolumeChange(double NewVol)
-        {
-            VolumeSlider.CancelAnimations();
-            await VolumeSlider.FadeTo(1);
-            await VolumeSlider.FadeTo(this.DefaultVolumeSliderOpacity, 250, Easing.CubicInOut);
-        }
-
-        private async void AnimateVolumeSlider(double NewVal)
-        {
-            VolumeSlider.Value = 0;
-            VolumeSlider.Animate("StartupVolUp", new Animation((V) =>
-            {
-                VolumeSlider.Value = V;
-                SetCurrentVolume((float)VolumeSlider.Value);
-            }, 0, NewVal, Easing.CubicOut), length: 2000);
-            LoopOnce = false;
-            await Task.CompletedTask;
-        }
-
-        public static void MPSet(IzolabellaSong Song, IEnumerable<IzolabellaAuthor> Authors, TimeSpan TimeRemaining)
-        {
-            MusicPlayerSetSong = Song;
-            MusicPlayerSetAuthors = Authors;
-        }
-
-        public async void StartCurrentlyPlayingLoop(IzolabellaSong? LastPlayed, IEnumerable<IzolabellaAuthor>? Authors, DateTime? LastRanAt, TimeSpan? TimeRemaining)
-        {
-            if(Error)
-            {
-                this.SongNameLabel.Text = $"Error";
-                this.ArtistNameLabel.Text = $"Attempting to reconnect . .";
-                new Task(() =>
-                {
-                    this.ArtistNameLabel.FadeTo(1);
-                    this.SongNameLabel.FadeTo(1);
-                    this.VolumeSlider.FadeTo(0);
-                }).Start();
-                Request<List<IzolabellaSong>> A = await MainPage.Client.GetServerQueue();
-                Error = !A.Success;
-                if(!Error)
-                {
-                    OnReconnect?.Invoke();
-                }
-            }
-            else if((LastPlayed != MusicPlayerSetSong || LastPlayed == null || Authors == null) && MusicPlayerSetSong != null && MusicPlayerSetAuthors != null)
-            {
-                LastPlayed = MusicPlayerSetSong;
-                Authors = MusicPlayerSetAuthors;
-                if (TimeRemaining.HasValue && TimeRemaining.Value >= TimeSpan.Zero)
-                {
-                    SetLabels(LastPlayed, Authors);
-                }
-                else
-                {
-                    await SongNameLabel.FadeTo(0, 250, Easing.CubicInOut);
-                    await ArtistNameLabel.FadeTo(0, 250, Easing.CubicInOut);
-                    await VolumeSlider.FadeTo(0, 250, Easing.CubicInOut);
-                    SetLabels(LastPlayed, Authors);
-                }
-                if (LoopOnce)
-                {
-                    this.AnimateVolumeSlider(0.25);
-                }
-            }
-            await Task.Delay(TimeSpan.FromSeconds(1));
-            this.StartCurrentlyPlayingLoop(LastPlayed, Authors, DateTime.UtcNow, LastPlayed != null && LastRanAt != null ? DateTime.UtcNow.Subtract(LastRanAt.Value) : LastPlayed?.FileInformation.FileDuration);
-        }
-
-        private async void SetLabels(IzolabellaSong LastPlayed, IEnumerable<IzolabellaAuthor> Authors)
-        {
-            SongNameLabel.Text = LastPlayed.Name;
-            ArtistNameLabel.Text = IzolabellaSong.GetAuthorDisplay(Authors);
-            await SongNameLabel.FadeTo(this.DefaultSongNameLabelOpacity, 250, Easing.CubicInOut);
-            await ArtistNameLabel.FadeTo(this.DefaultArtistNameLabelOpacity, 250, Easing.CubicInOut);
-            await VolumeSlider.FadeTo(this.DefaultVolumeSliderOpacity, 250, Easing.CubicInOut);
-        }
-
-        public static float GetCurrentVolume()
-        {
-            return (float)(VolumeChangedSlider?.Value ?? 0f);
-        }
-
-        public static void SetCurrentVolume(float VolGain)
-        {
-            if(!LoopOnce)
-            {
-                VolumeChanged?.Invoke(Math.Pow((double)VolGain, 1.2));
-            }
-        }
-
-        #endregion
-
-        private void NetError(Exception Ex)
-        {
-            MusicPlayerSetSong = null;
-            Error = true;
-        }
 
         /// <summary>
         /// The method that'll resize the currently playing frame to the correct location based on desktop vs. mobile 
@@ -214,5 +114,7 @@ namespace izolabella.LoFi.App
         private void DragCompleted(object Sender, EventArgs E)
         {
         }
+
+#endregion
     }
 }
