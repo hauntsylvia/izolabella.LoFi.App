@@ -3,7 +3,7 @@ using Android.Content.PM;
 using Android.OS;
 using izolabella.Music.Structure.Music.Songs;
 using Android.Content;
-using izolabella.LoFi.App.Platforms.Android.Services.Implementations;
+//using izolabella.LoFi.App.Platforms.Android.Services.Implementations;
 
 namespace izolabella.LoFi.App.Platforms.Android
 {
@@ -16,7 +16,7 @@ namespace izolabella.LoFi.App.Platforms.Android
 
         public void StartMusicService()
         {
-            this.I = new(this, typeof(MusicService));
+            //this.I = new(this, typeof(MusicService));
             if (OperatingSystem.IsAndroidVersionAtLeast(26))
             {
                 //this.StartForegroundService(I);

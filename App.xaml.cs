@@ -1,4 +1,6 @@
-﻿namespace izolabella.LoFi.App
+﻿using izolabella.Maui.Util.GenericStructures.Animations.Bases;
+
+namespace izolabella.LoFi.App
 {
     public partial class App : Application
     {

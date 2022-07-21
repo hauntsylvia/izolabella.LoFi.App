@@ -88,6 +88,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\izolabella.Maui.Util\izolabella.Maui.Util.csproj" />
 	  <ProjectReference Include="..\izolabella.Music\izolabella.Music.csproj" />
 	</ItemGroup>
 

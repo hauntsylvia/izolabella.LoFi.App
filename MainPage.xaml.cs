@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using izolabella.LoFi.App.Wide.Services.Implementations;
+using izolabella.Maui.Util.GenericStructures.Animations.Implementations;
 #if ANDROID
 using izolabella.Music.Platforms.Android;
 #elif WINDOWS
@@ -10,6 +11,7 @@ using izolabella.Music.Structure.Music.Artists;
 using izolabella.Music.Structure.Music.Songs;
 using izolabella.Music.Structure.Players;
 using izolabella.Music.Structure.Requests;
+using izolabella.LoFi.App.Wide.Constants;
 
 namespace izolabella.LoFi.App
 {
@@ -18,49 +20,75 @@ namespace izolabella.LoFi.App
         public MainPage()
         {
             InitializeComponent();
+            this.Client = new(IzolabellaDevAuth);
+
             this.SongNameLabel.Opacity = 0;
             this.ArtistNameLabel.Opacity = 0;
             this.VolumeSlider.Opacity = 0;
             this.VolumeSlider.Value = 0;
 
-            MainPage.Client.OnError += this.ClientErrorAsync;
-            Service = new GenericMusicService((A) =>
+            this.SongNameAnimator = new(ColorConfigs.Config, false, this.SongNameLabel);
+            this.ArtistNamesAnimator = new(ColorConfigs.Config, true, this.ArtistNameLabel);
+            this.VolumeSliderAnimator = new(ColorConfigs.Config, false, this.VolumeSlider);
+
+            this.Client.OnError += this.ClientErrorAsync;
+            Service = new GenericMusicService((A, BufferSize) =>
             {
                 MusicPlayer? P = null;
                 if(A.Started)
                 {
 #if WINDOWS
-                    P = new WindowsMusicPlayer(A.Playing, TimeSpan.FromSeconds(15));
+                    P = new WindowsMusicPlayer(A.Playing, BufferSize);
 #elif ANDROID
-                    P = new AndroidMusicPlayer(A.Playing, Android.Media.ChannelOut.Stereo, 192000);
+                    P = new AndroidMusicPlayer(A.Playing, Android.Media.ChannelOut.Stereo, BufferSize);
 #endif
                 }
                 return P ?? throw new PlatformNotSupportedException();
-            });
+            }, this);
+            this.Service.NextSongRequested += this.NewSongStartedAsync;
             this.Loaded += this.PageReadyAsync;
         }
 
-        private void ClientErrorAsync(Exception Ex)
+        private Task NewSongStartedAsync(bool FirstSong, Wide.Services.Results.NowPlayingResult NowPlayingInformation)
         {
-            throw new NotImplementedException();
+            if(NowPlayingInformation.Started)
+            {
+                this.SongNameLabel.Text = NowPlayingInformation.Playing.Name;
+                this.ArtistNameLabel.Text = "??";
+            }
+            return Task.CompletedTask;
         }
 
-        private async void PageReadyAsync(object? sender, EventArgs e)
-        {
-            await this.Service.StartAsync();
-        }
+        #region animators
+
+        public MauiTextAnimator SongNameAnimator { get; }
+        public MauiTextAnimator ArtistNamesAnimator { get; }
+        public MauiSliderAnimator VolumeSliderAnimator { get; }
+
+        #endregion
+
+        #region complexities
 
         public static string DevAuth => "942A87516E403D09B58C575784434BD3412FB66E8ACFA6F973427AE8E0A1B371";
         public static string IzolabellaDevAuth => "F0744E696705C239BAF094C2D754CB3A4A7DDE3B629B07308B53D993F0933395";
 
-        public static IzolabellaLoFiClient Client { get; private set; } = new(IzolabellaDevAuth);
+        public IzolabellaLoFiClient Client { get; private set; }
 
         public GenericMusicService Service { get; private set; }
 
-#region old
+        #endregion
+
+        #region events
+
+        public delegate Task OnVolumeChangeHandler(float NewVolume);
+        public event OnVolumeChangeHandler? OnVolumeChanged;
 
         public delegate Task MusicPlayersNeedToReconnectHandler();
-        public static event MusicPlayersNeedToReconnectHandler? OnReconnect;
+        public event MusicPlayersNeedToReconnectHandler? OnReconnect;
+
+        #endregion
+
+        #region ui stuff
 
         /// <summary>
         /// The method that'll resize the currently playing frame to the correct location based on desktop vs. mobile 
@@ -108,13 +136,31 @@ namespace izolabella.LoFi.App
 
         private void VolChanged(object Sender, ValueChangedEventArgs E)
         {
-            SetCurrentVolume((float)E.NewValue);
+            OnVolumeChanged?.Invoke((float)E.NewValue);
+        }
+
+        private void ClientErrorAsync(Exception Ex)
+        {
+            this.OnReconnect?.Invoke();
         }
 
         private void DragCompleted(object Sender, EventArgs E)
         {
         }
 
-#endregion
+        #endregion
+
+        #region page ready
+
+        private async void PageReadyAsync(object? Sender, EventArgs E)
+        {
+            this.SongNameAnimator.Appear();
+            this.ArtistNamesAnimator.Appear();
+            this.VolumeSliderAnimator.Appear();
+            this.VolumeSliderAnimator.SlideTo(0.25f);
+            await this.Service.StartAsync();
+        }
+
+        #endregion
     }
 }

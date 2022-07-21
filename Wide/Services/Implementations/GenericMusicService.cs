@@ -13,12 +13,13 @@ namespace izolabella.LoFi.App.Wide.Services.Implementations
 {
     public class GenericMusicService
     {
-        public GenericMusicService(Func<NowPlayingResult, MusicPlayer> GetNextMusicPlayer)
+        public GenericMusicService(Func<NowPlayingResult, int, MusicPlayer> GetNextMusicPlayer, MainPage Reference)
         {
             this.GetNextMusicPlayer = GetNextMusicPlayer;
-            this.Client = MainPage.Client;
+            this.Reference = Reference;
+            this.Reference.OnVolumeChanged += this.VolumeChangedAsync;
+            this.Client = Reference.Client;
             this.NextSongRequested += this.NewSongAsync;
-            MainPage.VolumeChanged += this.VolumeChangedAsync;
         }
 
         public Task StartAsync()
@@ -30,7 +31,9 @@ namespace izolabella.LoFi.App.Wide.Services.Implementations
         public delegate Task NextSongRequestedHandler(bool FirstSong, NowPlayingResult NowPlayingInformation);
         public event NextSongRequestedHandler NextSongRequested;
 
-        public Func<NowPlayingResult, MusicPlayer> GetNextMusicPlayer { get; }
+        public Func<NowPlayingResult, int, MusicPlayer> GetNextMusicPlayer { get; }
+
+        public MainPage Reference { get; }
 
         public MusicPlayer? LastMusicPlayer { get; private set; }
 
@@ -38,17 +41,17 @@ namespace izolabella.LoFi.App.Wide.Services.Implementations
 
         private List<IzolabellaSong>? Queue { get; set; }
 
-        public int BufferSize { get; } = 192000;
+        public int BufferSize { get; } = 192000 * 3;
 
         private int Index { get; set; } = 0;
 
         public Task SongPlayingTask { get; private set; } = Task.CompletedTask;
 
-        private Task VolumeChangedAsync(double NewVol)
+        private Task VolumeChangedAsync(float NewVol)
         {
             if(this.LastMusicPlayer != null)
             {
-                this.LastMusicPlayer.SetVolume((float)NewVol);
+                this.LastMusicPlayer.SetVolume(NewVol);
             }
             return Task.CompletedTask;
         }
@@ -70,15 +73,16 @@ namespace izolabella.LoFi.App.Wide.Services.Implementations
 
         private async Task NewSongAsync(bool FirstSong, NowPlayingResult NowPlayingInformation)
         {
-            this.LastMusicPlayer = this.GetNextMusicPlayer.Invoke(NowPlayingInformation);
+            this.LastMusicPlayer = this.GetNextMusicPlayer.Invoke(NowPlayingInformation, this.BufferSize);
             await this.LastMusicPlayer.StartAsync();
             this.Index = 0;
-            this.SongPlayingTask = this.FeedPlayerLoopAsync(this.LastMusicPlayer, NowPlayingInformation, TimeSpan.Zero);
+            this.SongPlayingTask = this.FeedPlayerLoopAsync(this.LastMusicPlayer, NowPlayingInformation, DateTime.MinValue);
         }
 
-        private async Task FeedPlayerLoopAsync(MusicPlayer PlayerToFeed, NowPlayingResult NowPlayingInformation, TimeSpan TimeLeft)
+        private async Task FeedPlayerLoopAsync(MusicPlayer PlayerToFeed, NowPlayingResult NowPlayingInformation, DateTime EndsAt)
         {
-            if(NowPlayingInformation.Started && TimeLeft <= TimeSpan.Zero)
+            TimeSpan TrueTimeLeft = EndsAt.Subtract(DateTime.UtcNow);
+            if(NowPlayingInformation.Started && TrueTimeLeft <= TimeSpan.FromMilliseconds(1000))
             {
                 int LengthOfSongBytes = NowPlayingInformation.Playing.FileInformation.LengthInBytes;
                 if(this.Index >= LengthOfSongBytes)
@@ -91,11 +95,15 @@ namespace izolabella.LoFi.App.Wide.Services.Implementations
                 {
                     this.Index += SongData.Result.Length;
                     await PlayerToFeed.FeedBytesAsync(SongData.Result);
-                    TimeLeft = NowPlayingInformation.Playing.GetTimeFromByteLength(LengthOfSongBytes - this.Index);
+                    Console.WriteLine("Fed!");
+                    EndsAt = DateTime.UtcNow.Add(NowPlayingInformation.Playing.GetTimeFromByteLength(SongData.Result.LongLength));
                 }
             }
-            await Task.Delay(TimeSpan.FromSeconds(1));
-            _ = this.FeedPlayerLoopAsync(PlayerToFeed, NowPlayingInformation, TimeLeft);
+            else
+            {
+                await Task.Delay(TrueTimeLeft.Divide(4));
+            }
+            _ = this.FeedPlayerLoopAsync(PlayerToFeed, NowPlayingInformation, EndsAt);
             //    return Task.CompletedTask;
         }
 
