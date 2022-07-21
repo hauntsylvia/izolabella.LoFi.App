@@ -15,9 +15,9 @@ namespace izolabella.LoFi.App.Wide.Constants
             SecondaryAnimationTime: TimeSpan.FromMilliseconds(2000),
             PinkText,
             PinkDisabled,
-            0.8f,
-            0.65f,
-            0f,
+            TransparencyEnabled: 0.8f,
+            SecondaryTransparencyEnabled: 0.65f,
+            TransparencyDisabled: 0.25f,
             Easing.CubicInOut);
 
         public static Color PinkText => new(247f, 235f, 255f);

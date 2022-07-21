@@ -5,14 +5,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using izolabella.LoFi.App.Wide.Services.Enums;
+using izolabella.Music.Structure.Music.Artists;
 using izolabella.Music.Structure.Music.Songs;
 
 namespace izolabella.LoFi.App.Wide.Services.Results
 {
     public class NowPlayingResult
     {
-        public NowPlayingResult(IzolabellaSong Playing, DateTime ExpectedEnd)
+        public NowPlayingResult(IzolabellaSong Playing, DateTime ExpectedEnd, IEnumerable<IzolabellaAuthor> Authors)
         {
+            this.Authors = Authors;
             this.Playing = Playing;
             this.ExpectedEnd = ExpectedEnd.ToUniversalTime();
         }
@@ -25,10 +27,13 @@ namespace izolabella.LoFi.App.Wide.Services.Results
 
         public NowPlayingStatus Status { get; }
 
+        [MemberNotNullWhen(true, nameof(this.Authors))]
         [MemberNotNullWhen(true, nameof(this.Playing))]
         [MemberNotNullWhen(true, nameof(this.ExpectedEnd))]
         [MemberNotNullWhen(true, nameof(this.TimeLeft))]
         public bool Started => this.Status == NowPlayingStatus.Started;
+
+        public IEnumerable<IzolabellaAuthor>? Authors { get; }
 
         public IzolabellaSong? Playing { get; }
 

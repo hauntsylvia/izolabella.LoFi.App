@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using izolabella.LoFi.App.Wide.Services.Results;
 using izolabella.Music.Structure.Clients;
+using izolabella.Music.Structure.Music.Artists;
 using izolabella.Music.Structure.Music.Songs;
 using izolabella.Music.Structure.Players;
 using izolabella.Music.Structure.Requests;
@@ -18,8 +19,23 @@ namespace izolabella.LoFi.App.Wide.Services.Implementations
             this.GetNextMusicPlayer = GetNextMusicPlayer;
             this.Reference = Reference;
             this.Reference.OnVolumeChanged += this.VolumeChangedAsync;
+            this.Reference.Client.OnDisconnect += this.DisconnectedAsync;
+            this.Reference.Client.OnReconnect += this.ReconnectedAsync;
             this.Client = Reference.Client;
             this.NextSongRequested += this.NewSongAsync;
+        }
+
+        private async void ReconnectedAsync()
+        {
+            await this.SongPlayingTask;
+            this.SongPlayingTaskCancellationToken = new();
+            await this.StartAsync();
+        }
+
+        private async void DisconnectedAsync()
+        {
+            this.SongPlayingTaskCancellationToken.Cancel();
+            await this.SongPlayingTask;
         }
 
         public Task StartAsync()
@@ -30,6 +46,9 @@ namespace izolabella.LoFi.App.Wide.Services.Implementations
 
         public delegate Task NextSongRequestedHandler(bool FirstSong, NowPlayingResult NowPlayingInformation);
         public event NextSongRequestedHandler NextSongRequested;
+
+        public delegate Task BufferReloadHandler();
+        public event BufferReloadHandler? BufferReloaded;
 
         public Func<NowPlayingResult, int, MusicPlayer> GetNextMusicPlayer { get; }
 
@@ -47,13 +66,31 @@ namespace izolabella.LoFi.App.Wide.Services.Implementations
 
         public Task SongPlayingTask { get; private set; } = Task.CompletedTask;
 
-        private Task VolumeChangedAsync(float NewVol)
+        public CancellationTokenSource SongPlayingTaskCancellationToken { get; private set; } = new();
+
+        private async Task VolumeChangedAsync(float NewVol)
         {
             if(this.LastMusicPlayer != null)
             {
-                this.LastMusicPlayer.SetVolume(NewVol);
+                await this.LastMusicPlayer.SetVolume(NewVol);
             }
-            return Task.CompletedTask;
+        }
+
+        private async Task NewSongAsync(bool FirstSong, NowPlayingResult NowPlayingInformation)
+        {
+            float Volume = this.LastMusicPlayer?.LastVolume ?? 0f;
+            if (!FirstSong)
+            {
+                this.SongPlayingTaskCancellationToken.Cancel();
+                await this.SongPlayingTask;
+                this.LastMusicPlayer?.Dispose();
+            }
+            this.LastMusicPlayer = this.GetNextMusicPlayer.Invoke(NowPlayingInformation, this.BufferSize);
+            await this.LastMusicPlayer.SetVolume(Volume);
+            await this.LastMusicPlayer.StartAsync();
+            this.Index = 0;
+            this.SongPlayingTaskCancellationToken = new();
+            this.SongPlayingTask = this.FeedPlayerLoopAsync(this.LastMusicPlayer, NowPlayingInformation, DateTime.MinValue, null);
         }
 
         private async Task<NowPlayingResult> StartPlayingAsync()
@@ -61,7 +98,9 @@ namespace izolabella.LoFi.App.Wide.Services.Implementations
             List<IzolabellaSong> Queue = await this.GetQueueAsync();
             if(Queue.Any())
             {
-                NowPlayingResult Result = new(Queue.First(), DateTime.UtcNow.Add(Queue.First().GetTimeFromByteLength(Queue.First().FileInformation.LengthInBytes)));
+                Request<List<IzolabellaAuthor>> ReqAuthors = await this.Client.GetSongAuthorsAsync(Queue.First().Id);
+                List<IzolabellaAuthor> Authors = ReqAuthors.Success ? ReqAuthors.Result : new();
+                NowPlayingResult Result = new(Queue.First(), DateTime.UtcNow.Add(Queue.First().GetTimeFromByteLength(Queue.First().FileInformation.LengthInBytes)), Authors);
                 this.NextSongRequested?.Invoke(true, Result);
                 return Result;
             }
@@ -71,18 +110,12 @@ namespace izolabella.LoFi.App.Wide.Services.Implementations
             }
         }
 
-        private async Task NewSongAsync(bool FirstSong, NowPlayingResult NowPlayingInformation)
+        private async Task FeedPlayerLoopAsync(MusicPlayer PlayerToFeed, NowPlayingResult NowPlayingInformation, DateTime EndsAt, Request<byte[]>? SongData, bool Consumed = false)
         {
-            this.LastMusicPlayer = this.GetNextMusicPlayer.Invoke(NowPlayingInformation, this.BufferSize);
-            await this.LastMusicPlayer.StartAsync();
-            this.Index = 0;
-            this.SongPlayingTask = this.FeedPlayerLoopAsync(this.LastMusicPlayer, NowPlayingInformation, DateTime.MinValue);
-        }
-
-        private async Task FeedPlayerLoopAsync(MusicPlayer PlayerToFeed, NowPlayingResult NowPlayingInformation, DateTime EndsAt)
-        {
+            Task BufferInvoke = this.BufferReloaded?.Invoke() ?? Task.CompletedTask;
             TimeSpan TrueTimeLeft = EndsAt.Subtract(DateTime.UtcNow);
-            if(NowPlayingInformation.Started && TrueTimeLeft <= TimeSpan.FromMilliseconds(1000))
+            TrueTimeLeft = TrueTimeLeft < TimeSpan.Zero ? TimeSpan.Zero : TrueTimeLeft;
+            if(NowPlayingInformation.Started && TrueTimeLeft <= TimeSpan.FromMilliseconds(5))
             {
                 int LengthOfSongBytes = NowPlayingInformation.Playing.FileInformation.LengthInBytes;
                 if(this.Index >= LengthOfSongBytes)
@@ -90,20 +123,28 @@ namespace izolabella.LoFi.App.Wide.Services.Implementations
                     this.NextSongRequested?.Invoke(false, await this.StartPlayingAsync());
                     return;
                 }
-                Request<byte[]> SongData = await this.Client.GetBytesAsync(NowPlayingInformation.Playing.Id, this.Index, this.BufferSize);
-                if (SongData.Success)
+                SongData ??= await this.Client.GetBytesAsync(NowPlayingInformation.Playing.Id, this.Index, this.BufferSize);
+                if (SongData != null && SongData.Success && !this.SongPlayingTaskCancellationToken.Token.IsCancellationRequested)
                 {
                     this.Index += SongData.Result.Length;
                     await PlayerToFeed.FeedBytesAsync(SongData.Result);
-                    Console.WriteLine("Fed!");
+                    Consumed = true;
                     EndsAt = DateTime.UtcNow.Add(NowPlayingInformation.Playing.GetTimeFromByteLength(SongData.Result.LongLength));
+                    SongData = null;
                 }
             }
-            else
+            if(NowPlayingInformation.Started)
             {
-                await Task.Delay(TrueTimeLeft.Divide(4));
+                TimeSpan WaitTick = TrueTimeLeft >= TimeSpan.FromMilliseconds(100) ? TrueTimeLeft.Subtract(TimeSpan.FromMilliseconds(100)) : TrueTimeLeft;
+                await Task.Delay(!Consumed ? TimeSpan.Zero : WaitTick);
+                SongData = !Consumed || SongData == null ? await this.Client.GetBytesAsync(NowPlayingInformation.Playing.Id, this.Index, this.BufferSize) : SongData;
             }
-            _ = this.FeedPlayerLoopAsync(PlayerToFeed, NowPlayingInformation, EndsAt);
+            if(!this.SongPlayingTaskCancellationToken.Token.IsCancellationRequested)
+            {
+                this.SongPlayingTask = this.FeedPlayerLoopAsync(PlayerToFeed, NowPlayingInformation, EndsAt, SongData, Consumed);
+
+            }
+
             //    return Task.CompletedTask;
         }
 
@@ -123,6 +164,7 @@ namespace izolabella.LoFi.App.Wide.Services.Implementations
                 IzolabellaSong First = this.Queue.First();
                 this.Queue.RemoveAt(0);
                 this.Queue.Add(First);
+                return this.Queue;
             }
             return new();
         }

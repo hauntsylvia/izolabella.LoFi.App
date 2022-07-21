@@ -12,6 +12,7 @@ using izolabella.Music.Structure.Music.Songs;
 using izolabella.Music.Structure.Players;
 using izolabella.Music.Structure.Requests;
 using izolabella.LoFi.App.Wide.Constants;
+using izolabella.LoFi.App.Wide.Services.Results;
 
 namespace izolabella.LoFi.App
 {
@@ -20,7 +21,9 @@ namespace izolabella.LoFi.App
         public MainPage()
         {
             InitializeComponent();
-            this.Client = new(IzolabellaDevAuth);
+            this.Client = new();
+            this.Client.OnDisconnect += this.DisconnectedAsync;
+            this.Client.OnReconnect += this.ReconnectedAsync;
 
             this.SongNameLabel.Opacity = 0;
             this.ArtistNameLabel.Opacity = 0;
@@ -31,7 +34,6 @@ namespace izolabella.LoFi.App
             this.ArtistNamesAnimator = new(ColorConfigs.Config, true, this.ArtistNameLabel);
             this.VolumeSliderAnimator = new(ColorConfigs.Config, false, this.VolumeSlider);
 
-            this.Client.OnError += this.ClientErrorAsync;
             Service = new GenericMusicService((A, BufferSize) =>
             {
                 MusicPlayer? P = null;
@@ -46,15 +48,22 @@ namespace izolabella.LoFi.App
                 return P ?? throw new PlatformNotSupportedException();
             }, this);
             this.Service.NextSongRequested += this.NewSongStartedAsync;
+            StaticService = this.Service;
             this.Loaded += this.PageReadyAsync;
         }
 
-        private Task NewSongStartedAsync(bool FirstSong, Wide.Services.Results.NowPlayingResult NowPlayingInformation)
+        private Task NewSongStartedAsync(bool FirstSong, NowPlayingResult NowPlayingInformation)
         {
             if(NowPlayingInformation.Started)
             {
-                this.SongNameLabel.Text = NowPlayingInformation.Playing.Name;
-                this.ArtistNameLabel.Text = "??";
+                Dispatcher.Dispatch(() =>
+                {
+                    this.SongNameLabel.Text = NowPlayingInformation.Playing.Name;
+                    this.ArtistNameLabel.Text = IzolabellaSong.GetAuthorDisplay(NowPlayingInformation.Authors);
+                    this.VolumeSlider.IsEnabled = true;
+                    this.VolumeSliderAnimator.Enable();
+                    this.ArtistNamesAnimator.Enable();
+                });
             }
             return Task.CompletedTask;
         }
@@ -75,6 +84,18 @@ namespace izolabella.LoFi.App
         public IzolabellaLoFiClient Client { get; private set; }
 
         public GenericMusicService Service { get; private set; }
+        private static GenericMusicService? StaticService { get; set; }
+
+        private float VolumeBeforeDisconnect { get; set; } = 0f;
+
+        public static async Task<GenericMusicService> GetService()
+        {
+            while(StaticService == null)
+            {
+                await Task.Delay(1000);
+            }
+            return StaticService;
+        }
 
         #endregion
 
@@ -82,9 +103,6 @@ namespace izolabella.LoFi.App
 
         public delegate Task OnVolumeChangeHandler(float NewVolume);
         public event OnVolumeChangeHandler? OnVolumeChanged;
-
-        public delegate Task MusicPlayersNeedToReconnectHandler();
-        public event MusicPlayersNeedToReconnectHandler? OnReconnect;
 
         #endregion
 
@@ -139,9 +157,27 @@ namespace izolabella.LoFi.App
             OnVolumeChanged?.Invoke((float)E.NewValue);
         }
 
-        private void ClientErrorAsync(Exception Ex)
+        private void ReconnectedAsync()
         {
-            this.OnReconnect?.Invoke();
+            Dispatcher.Dispatch(() =>
+            {
+                this.VolumeSliderAnimator.Enable();
+                this.ArtistNamesAnimator.Enable();
+                this.VolumeSliderAnimator.SlideTo(this.VolumeBeforeDisconnect);
+            });
+        }
+
+        private void DisconnectedAsync()
+        {
+            this.VolumeBeforeDisconnect = this.Service.LastMusicPlayer?.LastVolume ?? 0f;
+            Dispatcher.Dispatch(() =>
+            {
+                this.VolumeSliderAnimator.Disable();
+                this.ArtistNamesAnimator.Disable();
+                this.VolumeSliderAnimator.SlideTo(0);
+                this.ArtistNameLabel.Text = "..";
+                this.SongNameLabel.Text = "Error";
+            });
         }
 
         private void DragCompleted(object Sender, EventArgs E)
@@ -154,7 +190,9 @@ namespace izolabella.LoFi.App
 
         private async void PageReadyAsync(object? Sender, EventArgs E)
         {
+            this.SongNameLabel.Text = "Initializing . .";
             this.SongNameAnimator.Appear();
+            Task StartClientTask = this.Client.StartAsync(IzolabellaDevAuth);
             this.ArtistNamesAnimator.Appear();
             this.VolumeSliderAnimator.Appear();
             this.VolumeSliderAnimator.SlideTo(0.25f);

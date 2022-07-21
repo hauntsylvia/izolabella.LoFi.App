@@ -31,7 +31,7 @@ namespace izolabella.LoFi.App.WinUI
             //    {
             //        await Task.Delay(200);
             //    }
-            //    this.Player?.SetVolume((float)Vol);
+            //    this.Player?.ProtectedSetVolume((float)Vol);
             //};
             //this.ControlSongLoop();
         }
