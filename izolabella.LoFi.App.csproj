@@ -29,6 +29,7 @@
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
 		<Nullable>enable</Nullable>
+		<Title>izolabella.LoFi</Title>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-android|AnyCPU'">
@@ -37,36 +38,147 @@
 	  <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
 	  <AndroidPackageFormat>apk</AndroidPackageFormat>
 	  <DebugType>embedded</DebugType>
+	  <PublishTrimmed>False</PublishTrimmed>
+	  <AndroidKeyStore>False</AndroidKeyStore>
+	  <AndroidEnableProfiledAot>False</AndroidEnableProfiledAot>
+	  <EnableLLVM>False</EnableLLVM>
+	  <AndroidEnableMultiDex>False</AndroidEnableMultiDex>
+	  <DebugSymbols>True</DebugSymbols>
+	  <AndroidEnableSGenConcurrent>True</AndroidEnableSGenConcurrent>
+	  <RunAOTCompilation>False</RunAOTCompilation>
+	  <Debugger>Xamarin</Debugger>
+	  <AndroidStoreUncompressedFileExtensions />
+	  <JavaMaximumHeapSize />
+	  <AndroidLinkTool>r8</AndroidLinkTool>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-android|AnyCPU'">
-	  <DebugType>embedded</DebugType>
-	  <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
-	  <AndroidUseAapt2>False</AndroidUseAapt2>
+		<EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
+		<AndroidUseAapt2>True</AndroidUseAapt2>
+		<AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
+		<AndroidPackageFormat>apk</AndroidPackageFormat>
+		<DebugType>embedded</DebugType>
+		<PublishTrimmed>False</PublishTrimmed>
+		<AndroidKeyStore>False</AndroidKeyStore>
+		<AndroidEnableProfiledAot>False</AndroidEnableProfiledAot>
+		<EnableLLVM>False</EnableLLVM>
+		<AndroidEnableMultiDex>False</AndroidEnableMultiDex>
+		<DebugSymbols>True</DebugSymbols>
+		<AndroidEnableSGenConcurrent>True</AndroidEnableSGenConcurrent>
+		<RunAOTCompilation>False</RunAOTCompilation>
+		<Debugger>Xamarin</Debugger>
+		<AndroidStoreUncompressedFileExtensions />
+		<JavaMaximumHeapSize />
+		<AndroidLinkTool>r8</AndroidLinkTool>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-ios|AnyCPU'">
 	  <DebugType>embedded</DebugType>
+	  <AndroidKeyStore>False</AndroidKeyStore>
+	  <EnableLLVM>False</EnableLLVM>
+	  <AndroidLinkTool>r8</AndroidLinkTool>
+	  <MtouchUseLlvm>True</MtouchUseLlvm>
+	  <PublishTrimmed>False</PublishTrimmed>
+	  <AndroidEnableSGenConcurrent>True</AndroidEnableSGenConcurrent>
+	  <RunAOTCompilation>False</RunAOTCompilation>
+	  <DebugSymbols>True</DebugSymbols>
+	  <Debugger>Xamarin</Debugger>
+	  <AndroidStoreUncompressedFileExtensions />
+	  <AndroidEnableMultiDex>False</AndroidEnableMultiDex>
+	  <AndroidUseAapt2>True</AndroidUseAapt2>
+	  <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
+	  <AndroidPackageFormat>apk</AndroidPackageFormat>
+	  <JavaMaximumHeapSize />
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-ios|AnyCPU'">
 	  <DebugType>embedded</DebugType>
+	  <DebugSymbols>True</DebugSymbols>
+	  <AndroidKeyStore>False</AndroidKeyStore>
+	  <EnableLLVM>False</EnableLLVM>
+	  <AndroidLinkTool>r8</AndroidLinkTool>
+	  <PublishTrimmed>False</PublishTrimmed>
+	  <AndroidEnableSGenConcurrent>True</AndroidEnableSGenConcurrent>
+	  <RunAOTCompilation>False</RunAOTCompilation>
+	  <Debugger>Xamarin</Debugger>
+	  <AndroidStoreUncompressedFileExtensions />
+	  <AndroidEnableMultiDex>False</AndroidEnableMultiDex>
+	  <AndroidUseAapt2>True</AndroidUseAapt2>
+	  <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
+	  <AndroidPackageFormat>apk</AndroidPackageFormat>
+	  <JavaMaximumHeapSize />
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-maccatalyst|AnyCPU'">
 	  <DebugType>embedded</DebugType>
+	  <AndroidKeyStore>False</AndroidKeyStore>
+	  <EnableLLVM>False</EnableLLVM>
+	  <AndroidLinkTool>r8</AndroidLinkTool>
+	  <PublishTrimmed>False</PublishTrimmed>
+	  <AndroidEnableSGenConcurrent>True</AndroidEnableSGenConcurrent>
+	  <RunAOTCompilation>False</RunAOTCompilation>
+	  <DebugSymbols>True</DebugSymbols>
+	  <Debugger>Xamarin</Debugger>
+	  <AndroidStoreUncompressedFileExtensions />
+	  <AndroidEnableMultiDex>False</AndroidEnableMultiDex>
+	  <AndroidUseAapt2>True</AndroidUseAapt2>
+	  <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
+	  <AndroidPackageFormat>apk</AndroidPackageFormat>
+	  <JavaMaximumHeapSize />
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-maccatalyst|AnyCPU'">
 	  <DebugType>embedded</DebugType>
+	  <DebugSymbols>True</DebugSymbols>
+	  <AndroidKeyStore>False</AndroidKeyStore>
+	  <EnableLLVM>False</EnableLLVM>
+	  <AndroidLinkTool>r8</AndroidLinkTool>
+	  <PublishTrimmed>False</PublishTrimmed>
+	  <AndroidEnableSGenConcurrent>True</AndroidEnableSGenConcurrent>
+	  <RunAOTCompilation>False</RunAOTCompilation>
+	  <Debugger>Xamarin</Debugger>
+	  <AndroidStoreUncompressedFileExtensions />
+	  <AndroidEnableMultiDex>False</AndroidEnableMultiDex>
+	  <AndroidUseAapt2>True</AndroidUseAapt2>
+	  <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
+	  <AndroidPackageFormat>apk</AndroidPackageFormat>
+	  <JavaMaximumHeapSize />
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-windows10.0.19041.0|AnyCPU'">
 	  <DebugType>embedded</DebugType>
+	  <AndroidKeyStore>False</AndroidKeyStore>
+	  <EnableLLVM>False</EnableLLVM>
+	  <AndroidLinkTool>r8</AndroidLinkTool>
+	  <PublishTrimmed>False</PublishTrimmed>
+	  <AndroidEnableSGenConcurrent>True</AndroidEnableSGenConcurrent>
+	  <RunAOTCompilation>False</RunAOTCompilation>
+	  <DebugSymbols>True</DebugSymbols>
+	  <Debugger>Xamarin</Debugger>
+	  <AndroidStoreUncompressedFileExtensions />
+	  <AndroidEnableMultiDex>False</AndroidEnableMultiDex>
+	  <AndroidUseAapt2>True</AndroidUseAapt2>
+	  <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
+	  <AndroidPackageFormat>apk</AndroidPackageFormat>
+	  <JavaMaximumHeapSize />
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-windows10.0.19041.0|AnyCPU'">
 	  <DebugType>embedded</DebugType>
+	  <DebugSymbols>True</DebugSymbols>
+	  <AndroidKeyStore>False</AndroidKeyStore>
+	  <EnableLLVM>False</EnableLLVM>
+	  <AndroidLinkTool>r8</AndroidLinkTool>
+	  <PublishTrimmed>False</PublishTrimmed>
+	  <AndroidEnableSGenConcurrent>True</AndroidEnableSGenConcurrent>
+	  <RunAOTCompilation>False</RunAOTCompilation>
+	  <Debugger>Xamarin</Debugger>
+	  <AndroidStoreUncompressedFileExtensions />
+	  <AndroidEnableMultiDex>False</AndroidEnableMultiDex>
+	  <AndroidUseAapt2>True</AndroidUseAapt2>
+	  <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
+	  <AndroidPackageFormat>apk</AndroidPackageFormat>
+	  <JavaMaximumHeapSize />
 	</PropertyGroup>
 
 	<ItemGroup>

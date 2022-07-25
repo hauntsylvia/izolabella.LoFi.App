@@ -38,6 +38,14 @@ namespace izolabella.LoFi.App.Wide.Services.Implementations
             await this.SongPlayingTask;
         }
 
+        public Task StopAsync()
+        {
+            this.SongPlayingTaskCancellationToken.Cancel();
+            this.LastMusicPlayer?.SetVolume(0f);
+            this.LastMusicPlayer?.Dispose();
+            return Task.CompletedTask;
+        }
+
         public Task StartAsync()
         {
             Task StartTask = this.StartPlayingAsync();

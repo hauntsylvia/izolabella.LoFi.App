@@ -66,6 +66,15 @@ namespace izolabella.LoFi.App.Platforms.Android.Services.Implementations
             return StartCommandResult.Sticky;
         }
 
+        public override async void OnDestroy()
+        {
+            if(this.Service != null)
+            {
+                await this.Service.StopAsync();
+            }
+            base.OnDestroy();
+        }
+
         private Task MusicService_BufferReloaded()
         {
             return Task.CompletedTask;
