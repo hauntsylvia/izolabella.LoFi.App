@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using izolabella.Maui.Util.GenericStructures.Animations.Bases;
 
-namespace izolabella.LoFi.App.Wide.Constants
+namespace izolabella.LoFi.Wide.Constants
 {
     public static class ColorConfigs
     {

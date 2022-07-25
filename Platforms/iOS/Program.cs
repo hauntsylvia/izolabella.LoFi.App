@@ -1,7 +1,7 @@
 ﻿using ObjCRuntime;
 using UIKit;
 
-namespace izolabella.LoFi.App.Platforms.iOS
+namespace izolabella.LoFi.Platforms.iOS
 {
     public class Program
     {

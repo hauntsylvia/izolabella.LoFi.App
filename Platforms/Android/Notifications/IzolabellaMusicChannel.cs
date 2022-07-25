@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace izolabella.LoFi.App.Platforms.Android.Notifications
+namespace izolabella.LoFi.Platforms.Android.Notifications
 {
     public class IzolabellaMusicChannel : IzolabellaNotificationChannel
     {

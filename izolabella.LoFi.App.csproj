@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net6.0-android;net6.0-ios;net6.0-maccatalyst</TargetFrameworks>
+		<TargetFrameworks>net6.0-android;net6.0-maccatalyst</TargetFrameworks>
 		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net6.0-windows10.0.19041.0</TargetFrameworks>
 		<!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
 		<!-- <TargetFrameworks>$(TargetFrameworks);net6.0-tizen</TargetFrameworks> -->
 		<OutputType>Exe</OutputType>
-		<RootNamespace>izolabella.LoFi.App</RootNamespace>
+		<RootNamespace>izolabella.LoFi</RootNamespace>
 		<UseMaui>true</UseMaui>
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>enable</ImplicitUsings>
@@ -49,7 +49,7 @@
 	  <Debugger>Xamarin</Debugger>
 	  <AndroidStoreUncompressedFileExtensions />
 	  <JavaMaximumHeapSize />
-	  <AndroidLinkTool>r8</AndroidLinkTool>
+	  <Optimize>False</Optimize>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-android|AnyCPU'">
@@ -69,14 +69,13 @@
 		<Debugger>Xamarin</Debugger>
 		<AndroidStoreUncompressedFileExtensions />
 		<JavaMaximumHeapSize />
-		<AndroidLinkTool>r8</AndroidLinkTool>
+		<Optimize>False</Optimize>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-ios|AnyCPU'">
 	  <DebugType>embedded</DebugType>
 	  <AndroidKeyStore>False</AndroidKeyStore>
 	  <EnableLLVM>False</EnableLLVM>
-	  <AndroidLinkTool>r8</AndroidLinkTool>
 	  <MtouchUseLlvm>True</MtouchUseLlvm>
 	  <PublishTrimmed>False</PublishTrimmed>
 	  <AndroidEnableSGenConcurrent>True</AndroidEnableSGenConcurrent>
@@ -89,6 +88,7 @@
 	  <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
 	  <AndroidPackageFormat>apk</AndroidPackageFormat>
 	  <JavaMaximumHeapSize />
+	  <Optimize>False</Optimize>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-ios|AnyCPU'">
@@ -96,7 +96,6 @@
 	  <DebugSymbols>True</DebugSymbols>
 	  <AndroidKeyStore>False</AndroidKeyStore>
 	  <EnableLLVM>False</EnableLLVM>
-	  <AndroidLinkTool>r8</AndroidLinkTool>
 	  <PublishTrimmed>False</PublishTrimmed>
 	  <AndroidEnableSGenConcurrent>True</AndroidEnableSGenConcurrent>
 	  <RunAOTCompilation>False</RunAOTCompilation>
@@ -107,13 +106,13 @@
 	  <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
 	  <AndroidPackageFormat>apk</AndroidPackageFormat>
 	  <JavaMaximumHeapSize />
+	  <Optimize>False</Optimize>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-maccatalyst|AnyCPU'">
 	  <DebugType>embedded</DebugType>
 	  <AndroidKeyStore>False</AndroidKeyStore>
 	  <EnableLLVM>False</EnableLLVM>
-	  <AndroidLinkTool>r8</AndroidLinkTool>
 	  <PublishTrimmed>False</PublishTrimmed>
 	  <AndroidEnableSGenConcurrent>True</AndroidEnableSGenConcurrent>
 	  <RunAOTCompilation>False</RunAOTCompilation>
@@ -125,6 +124,7 @@
 	  <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
 	  <AndroidPackageFormat>apk</AndroidPackageFormat>
 	  <JavaMaximumHeapSize />
+	  <Optimize>False</Optimize>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-maccatalyst|AnyCPU'">
@@ -132,7 +132,6 @@
 	  <DebugSymbols>True</DebugSymbols>
 	  <AndroidKeyStore>False</AndroidKeyStore>
 	  <EnableLLVM>False</EnableLLVM>
-	  <AndroidLinkTool>r8</AndroidLinkTool>
 	  <PublishTrimmed>False</PublishTrimmed>
 	  <AndroidEnableSGenConcurrent>True</AndroidEnableSGenConcurrent>
 	  <RunAOTCompilation>False</RunAOTCompilation>
@@ -143,13 +142,13 @@
 	  <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
 	  <AndroidPackageFormat>apk</AndroidPackageFormat>
 	  <JavaMaximumHeapSize />
+	  <Optimize>False</Optimize>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-windows10.0.19041.0|AnyCPU'">
 	  <DebugType>embedded</DebugType>
 	  <AndroidKeyStore>False</AndroidKeyStore>
 	  <EnableLLVM>False</EnableLLVM>
-	  <AndroidLinkTool>r8</AndroidLinkTool>
 	  <PublishTrimmed>False</PublishTrimmed>
 	  <AndroidEnableSGenConcurrent>True</AndroidEnableSGenConcurrent>
 	  <RunAOTCompilation>False</RunAOTCompilation>
@@ -161,6 +160,7 @@
 	  <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
 	  <AndroidPackageFormat>apk</AndroidPackageFormat>
 	  <JavaMaximumHeapSize />
+	  <Optimize>False</Optimize>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-windows10.0.19041.0|AnyCPU'">
@@ -168,7 +168,6 @@
 	  <DebugSymbols>True</DebugSymbols>
 	  <AndroidKeyStore>False</AndroidKeyStore>
 	  <EnableLLVM>False</EnableLLVM>
-	  <AndroidLinkTool>r8</AndroidLinkTool>
 	  <PublishTrimmed>False</PublishTrimmed>
 	  <AndroidEnableSGenConcurrent>True</AndroidEnableSGenConcurrent>
 	  <RunAOTCompilation>False</RunAOTCompilation>
@@ -179,6 +178,7 @@
 	  <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
 	  <AndroidPackageFormat>apk</AndroidPackageFormat>
 	  <JavaMaximumHeapSize />
+	  <Optimize>False</Optimize>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -202,6 +202,7 @@
 	<ItemGroup>
 	  <ProjectReference Include="..\izolabella.Maui.Util\izolabella.Maui.Util.csproj" />
 	  <ProjectReference Include="..\izolabella.Music\izolabella.Music.csproj" />
+	  <ProjectReference Include="..\izolabella.Util\izolabella.Util.csproj" />
 	</ItemGroup>
 
 </Project>

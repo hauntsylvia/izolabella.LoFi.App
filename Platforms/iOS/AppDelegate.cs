@@ -1,6 +1,6 @@
 ﻿using Foundation;
 
-namespace izolabella.LoFi.App.Platforms.iOS
+namespace izolabella.LoFi.Platforms.iOS
 {
     [Register("AppDelegate")]
     public class AppDelegate : MauiUIApplicationDelegate

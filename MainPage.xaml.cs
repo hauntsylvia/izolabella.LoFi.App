@@ -1,5 +1,5 @@
 ﻿using System.Reflection;
-using izolabella.LoFi.App.Wide.Services.Implementations;
+using izolabella.LoFi.Wide.Services.Implementations;
 using izolabella.Maui.Util.GenericStructures.Animations.Implementations;
 #if ANDROID
 using izolabella.Music.Platforms.Android;
@@ -11,10 +11,10 @@ using izolabella.Music.Structure.Music.Artists;
 using izolabella.Music.Structure.Music.Songs;
 using izolabella.Music.Structure.Players;
 using izolabella.Music.Structure.Requests;
-using izolabella.LoFi.App.Wide.Constants;
-using izolabella.LoFi.App.Wide.Services.Results;
+using izolabella.LoFi.Wide.Constants;
+using izolabella.LoFi.Wide.Services.Results;
 
-namespace izolabella.LoFi.App
+namespace izolabella.LoFi
 {
     public partial class MainPage : ContentPage
     {

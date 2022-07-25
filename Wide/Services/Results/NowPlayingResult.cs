@@ -4,11 +4,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using izolabella.LoFi.App.Wide.Services.Enums;
+using izolabella.LoFi.Wide.Services.Enums;
 using izolabella.Music.Structure.Music.Artists;
 using izolabella.Music.Structure.Music.Songs;
 
-namespace izolabella.LoFi.App.Wide.Services.Results
+namespace izolabella.LoFi.Wide.Services.Results
 {
     public class NowPlayingResult
     {

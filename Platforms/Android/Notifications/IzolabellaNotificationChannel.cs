@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Android.App;
 using izolabella.Util;
 
-namespace izolabella.LoFi.App.Platforms.Android.Notifications
+namespace izolabella.LoFi.Platforms.Android.Notifications
 {
     public abstract class IzolabellaNotificationChannel
     {

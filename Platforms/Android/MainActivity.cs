@@ -3,9 +3,9 @@ using Android.Content.PM;
 using Android.OS;
 using izolabella.Music.Structure.Music.Songs;
 using Android.Content;
-using izolabella.LoFi.App.Platforms.Android.Services.Implementations;
+using izolabella.LoFi.Platforms.Android.Services.Implementations;
 
-namespace izolabella.LoFi.App.Platforms.Android
+namespace izolabella.LoFi.Platforms.Android
 {
     [Activity(Theme = "@style/Maui.SplashTheme", MainLauncher = true, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
     public class MainActivity : MauiAppCompatActivity

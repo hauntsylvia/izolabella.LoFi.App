@@ -3,7 +3,7 @@ using izolabella.Music.Structure.Clients;
 using izolabella.Music.Structure.Music.Songs;
 using izolabella.Music.Structure.Players;
 
-namespace izolabella.LoFi.App
+namespace izolabella.LoFi
 {
     public static class MauiProgram
     {

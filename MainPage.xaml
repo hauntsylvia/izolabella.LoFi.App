@@ -1,13 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:y="clr-namespace:izolabella.LoFi.App"
-             x:Class="izolabella.LoFi.App.MainPage"
+             xmlns:y="clr-namespace:izolabella.LoFi"
+             x:Class="izolabella.LoFi.MainPage"
              Shell.NavBarIsVisible="False"
              BackgroundColor="#000000">
 
     <Shell.TitleView>
-        <Label Text="izolabella.LoFi.App" HorizontalOptions="Center"></Label>
+        <Label Text="izolabella.LoFi" HorizontalOptions="Center"></Label>
     </Shell.TitleView>
     <ContentView x:Name="FullContentView">
         <Grid x:Name="MainGrid" SizeChanged="MainPageSizeChanged">

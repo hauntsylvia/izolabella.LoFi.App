@@ -1,7 +1,7 @@
 ﻿using ObjCRuntime;
 using UIKit;
 
-namespace izolabella.LoFi.App.Platforms.MacCatalyst
+namespace izolabella.LoFi.Platforms.MacCatalyst
 {
     public class Program
     {

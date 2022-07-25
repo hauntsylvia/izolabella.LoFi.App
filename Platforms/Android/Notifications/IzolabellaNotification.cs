@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Android.App;
 using Android.Content;
 
-namespace izolabella.LoFi.App.Platforms.Android.Notifications
+namespace izolabella.LoFi.Platforms.Android.Notifications
 {
     public class IzolabellaNotification
     {

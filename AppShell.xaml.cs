@@ -1,4 +1,4 @@
-﻿namespace izolabella.LoFi.App
+﻿namespace izolabella.LoFi
 {
     public partial class AppShell : Shell
     {

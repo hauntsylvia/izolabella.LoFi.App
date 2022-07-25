@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using izolabella.LoFi.App.Wide.Services.Results;
+using izolabella.LoFi.Wide.Services.Results;
 using izolabella.Music.Structure.Clients;
 using izolabella.Music.Structure.Music.Artists;
 using izolabella.Music.Structure.Music.Songs;
 using izolabella.Music.Structure.Players;
 using izolabella.Music.Structure.Requests;
 
-namespace izolabella.LoFi.App.Wide.Services.Implementations
+namespace izolabella.LoFi.Wide.Services.Implementations
 {
     public class GenericMusicService
     {

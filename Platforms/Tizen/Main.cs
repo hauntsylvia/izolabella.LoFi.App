@@ -2,7 +2,7 @@ using Microsoft.Maui;
 using Microsoft.Maui.Hosting;
 using System;
 
-namespace izolabella.LoFi.App
+namespace izolabella.LoFi
 {
     internal class Program : MauiApplication
     {
