@@ -21,7 +21,8 @@ namespace izolabella.LoFi.Platforms.Android.Notifications
         {
             return OperatingSystem.IsAndroidVersionAtLeast(26) ? new IzolabellaNotification(Context, Channel).Inner
                     .SetContentTitle("LoFi . .")
-                    .SetChannelId(Channel.Id) : throw new PlatformNotSupportedException();
+                    .SetChannelId(Channel.Id)
+                    .SetSmallIcon(Resource.Drawable.navigation_empty_icon) : throw new PlatformNotSupportedException();
         }
     }
 }

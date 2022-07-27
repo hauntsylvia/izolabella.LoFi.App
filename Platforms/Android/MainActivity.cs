@@ -4,6 +4,8 @@ using Android.OS;
 using izolabella.Music.Structure.Music.Songs;
 using Android.Content;
 using izolabella.LoFi.Platforms.Android.Services.Implementations;
+using izolabella.LoFi.Platforms.Android.Notifications;
+using izolabella.LoFi.Wide.Services.Implementations.Notifications;
 
 namespace izolabella.LoFi.Platforms.Android
 {
@@ -40,9 +42,20 @@ namespace izolabella.LoFi.Platforms.Android
             if (!AlreadyStarted)
             {
                 AlreadyStarted = true;
+                MainPage.OnLoggedIn += this.UserLoggedInAsync;
                 this.StartMusicService();
             }
             base.OnCreate(SavedInstanceState);
+        }
+
+        private Task UserLoggedInAsync(Music.Structure.Users.LoFiUser User)
+        {
+            NotificationManager? M = (NotificationManager?)GetSystemService(NotificationService);
+            if(M != null)
+            {
+                NotificationHandler.SendNotification($"Verified as {User.Profile.DisplayName}", new IzolabellaMusicChannel(), M, this);
+            }
+            return Task.CompletedTask;
         }
 
         protected override void OnDestroy()

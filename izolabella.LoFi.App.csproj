@@ -200,6 +200,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <PackageReference Include="CommunityToolkit.Maui" Version="1.2.0" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <ProjectReference Include="..\izolabella.Maui.Util\izolabella.Maui.Util.csproj" />
 	  <ProjectReference Include="..\izolabella.Music\izolabella.Music.csproj" />
 	  <ProjectReference Include="..\izolabella.Util\izolabella.Util.csproj" />

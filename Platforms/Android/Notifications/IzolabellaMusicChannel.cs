@@ -8,7 +8,7 @@ namespace izolabella.LoFi.Platforms.Android.Notifications
 {
     public class IzolabellaMusicChannel : IzolabellaNotificationChannel
     {
-        public IzolabellaMusicChannel(string Name, string Description) : base(Name, Description, "Music")
+        public IzolabellaMusicChannel() : base("LoFi", "The running notifications.", "Music")
         {
         }
     }

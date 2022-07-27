@@ -9,7 +9,7 @@ using izolabella.Util;
 
 namespace izolabella.LoFi.Platforms.Android.Notifications
 {
-    public abstract class IzolabellaNotificationChannel
+    public class IzolabellaNotificationChannel
     {
         public IzolabellaNotificationChannel(string Name, string Description, string? Id = null)
         {

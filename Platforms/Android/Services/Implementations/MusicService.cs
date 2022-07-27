@@ -19,7 +19,7 @@ namespace izolabella.LoFi.Platforms.Android.Services.Implementations
 
         public override StartCommandResult OnStartCommand(Intent? I, StartCommandFlags F, int StartId)
         {
-            IzolabellaMusicChannel Channel = new("LoFi", "The running notifications.");
+            IzolabellaMusicChannel Channel = new();
             NotificationManager? NotificationManager = (NotificationManager?)GetSystemService(NotificationService);
             if (NotificationManager != null && OperatingSystem.IsAndroidVersionAtLeast(29) && NotificationManager.GetNotificationChannel(Channel.Id) == null)
             {
@@ -39,7 +39,6 @@ namespace izolabella.LoFi.Platforms.Android.Services.Implementations
                 .SetContentIntent(OnClickPendingIntent)
                 .SetOngoing(true)
                 .SetContentText("Playing . . .")
-                .SetSmallIcon(Resource.Drawable.navigation_empty_icon)
                 .SetVisibility(NotificationVisibility.Public)
                 .SetCategory("LoFi")
                 .Build();

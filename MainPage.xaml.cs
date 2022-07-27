@@ -13,6 +13,8 @@ using izolabella.Music.Structure.Players;
 using izolabella.Music.Structure.Requests;
 using izolabella.LoFi.Wide.Constants;
 using izolabella.LoFi.Wide.Services.Results;
+using izolabella.Music.Structure.Users;
+using izolabella.Backend.Objects.Structures.Backend;
 
 namespace izolabella.LoFi
 {
@@ -20,10 +22,13 @@ namespace izolabella.LoFi
     {
         public MainPage()
         {
+            this.Appearing += this.PageFocusAsync;
             InitializeComponent();
             this.Client = new();
             this.Client.OnDisconnect += this.DisconnectedAsync;
             this.Client.OnReconnect += this.ReconnectedAsync;
+
+            Clipboard.Default.ClipboardContentChanged += this.ClipboardTextChanged;
 
             this.SongNameLabel.Opacity = 0;
             this.ArtistNameLabel.Opacity = 0;
@@ -50,6 +55,28 @@ namespace izolabella.LoFi
             this.Service.NextSongRequested += this.NewSongStartedAsync;
             StaticService = this.Service;
             this.Loaded += this.PageReadyAsync;
+        }
+
+        private async void PageFocusAsync(object? Sender, EventArgs E)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(1));
+            this.ClipboardTextChanged(Sender, E);
+        }
+
+        private async void ClipboardTextChanged(object? Sender, EventArgs E)
+        {
+            string? Text = await Clipboard.Default.GetTextAsync();
+            if (Text != null)
+            {
+                Request<LoFiUser?> Verify = await this.Client.TryVerifyAsync(Text, false);
+                if(Verify.Success && Verify.Result != null)
+                {
+                    await DataStores.CredStore.DeleteAllAsync();
+                    await DataStores.CredStore.SaveAsync(Verify.Result);
+                    await this.Client.SetAuthorizationAsync(Text, false);
+                    OnLoggedIn?.Invoke(Verify.Result);
+                }
+            }
         }
 
         private Task NewSongStartedAsync(bool FirstSong, NowPlayingResult NowPlayingInformation)
@@ -103,6 +130,9 @@ namespace izolabella.LoFi
 
         public delegate Task OnVolumeChangeHandler(float NewVolume);
         public event OnVolumeChangeHandler? OnVolumeChanged;
+
+        public delegate Task OnLoggedInHandler(LoFiUser User);
+        public static event OnLoggedInHandler? OnLoggedIn;
 
         #endregion
 
@@ -188,15 +218,28 @@ namespace izolabella.LoFi
 
         #region page ready
 
-        private async void PageReadyAsync(object? Sender, EventArgs E)
+        private void PageReadyAsync(object? Sender, EventArgs E)
         {
             this.SongNameLabel.Text = "Initializing . .";
             this.SongNameAnimator.Appear();
-            Task StartClientTask = this.Client.StartAsync(IzolabellaDevAuth);
+            Task StartClientTask = this.Client.StartAsync(null);
             this.ArtistNamesAnimator.Appear();
             this.VolumeSliderAnimator.Appear();
             this.VolumeSliderAnimator.SlideTo(0.25f);
-            await this.Service.StartAsync();
+            Task StartMusic = this.Service.StartAsync();
+            new Task(async () =>
+            {
+                LoFiUser? C = (await DataStores.CredStore.ReadAllAsync<LoFiUser>()).FirstOrDefault();
+                if (C != null)
+                {
+                    Request<LoFiUser?> Self = await this.Client.TryVerifyAsync(C.Credentials.Secret, false).ConfigureAwait(false);
+                    if (Self.Success && Self.Result != null)
+                    {
+                        await this.Client.SetAuthorizationAsync(C.Credentials.Secret, false).ConfigureAwait(false);
+                        OnLoggedIn?.Invoke(Self.Result);
+                    }
+                }
+            }).Start();
         }
 
         #endregion
