@@ -4,11 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace izolabella.LoFi.Wide.Services.Enums
+namespace izolabella.LoFi.Wide.Services.Enums;
+
+public enum NowPlayingStatus
 {
-    public enum NowPlayingStatus
-    {
-        Started,
-        Unavailable
-    }
+    Started,
+    Unavailable
 }

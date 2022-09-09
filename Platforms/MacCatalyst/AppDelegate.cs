@@ -1,10 +1,9 @@
 ﻿using Foundation;
 
-namespace izolabella.LoFi.Platforms.MacCatalyst
+namespace izolabella.LoFi.Platforms.MacCatalyst;
+
+[Register("AppDelegate")]
+public class AppDelegate : MauiUIApplicationDelegate
 {
-    [Register("AppDelegate")]
-    public class AppDelegate : MauiUIApplicationDelegate
-    {
-        protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
-    }
+    protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
 }

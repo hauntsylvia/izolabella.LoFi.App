@@ -8,18 +8,17 @@ using izolabella.Music.Structure.Requests;
 using static Android.Net.Wifi.WifiEnterpriseConfig;
 using static Android.OS.PowerManager;
 
-namespace izolabella.LoFi.Platforms.Android
-{
-    [Application]
-    public class MainApplication : MauiApplication
-    {
-        public MainApplication(IntPtr Handle, JniHandleOwnership Ownership) : base(Handle, Ownership)
-        {
-        }
+namespace izolabella.LoFi.Platforms.Android;
 
-        protected override MauiApp CreateMauiApp()
-        {
-            return MauiProgram.CreateMauiApp();
-        }
+[Application]
+public class MainApplication : MauiApplication
+{
+    public MainApplication(IntPtr Handle, JniHandleOwnership Ownership) : base(Handle, Ownership)
+    {
+    }
+
+    protected override MauiApp CreateMauiApp()
+    {
+        return MauiProgram.CreateMauiApp();
     }
 }
