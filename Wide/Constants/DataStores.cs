@@ -5,11 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 using izolabella.Storage.Objects.DataStores;
 
-namespace izolabella.LoFi.Wide.Constants;
-
-public static class DataStores
+namespace izolabella.LoFi.Wide.Constants
 {
-    public static string AppName => "izolabella.LApp";
+    public static class DataStores
+    {
+        public static string AppName => "izolabella.LApp";
 
-    public static MauiDataStore CredStore => new(AppName, "C");
+        public static MauiDataStore CredStore => new(AppName, "C");
+    }
 }

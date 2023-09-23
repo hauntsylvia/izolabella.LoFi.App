@@ -1,9 +1,10 @@
-﻿namespace izolabella.LoFi;
-
-public partial class AppShell : Shell
+﻿namespace izolabella.LoFi
 {
-    public AppShell()
+    public partial class AppShell : Shell
     {
-        InitializeComponent();
+        public AppShell()
+        {
+            this.InitializeComponent();
+        }
     }
 }

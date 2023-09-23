@@ -4,14 +4,15 @@ using izolabella.Music.Structure.Music.Songs;
 using izolabella.Music.Structure.Players;
 using CommunityToolkit.Maui;
 
-namespace izolabella.LoFi;
-
-public static class MauiProgram
+namespace izolabella.LoFi
 {
-    public static MauiApp CreateMauiApp()
+    public static class MauiProgram
     {
-        MauiAppBuilder Builder = MauiApp.CreateBuilder();
-        Builder.UseMauiApp<App>().ConfigureFonts(Fonts => Fonts.AddFont("RobotoMonoMedium.ttf", "RobotoMonoMedium")).UseMauiCommunityToolkit();
-        return Builder.Build();
+        public static MauiApp CreateMauiApp()
+        {
+            MauiAppBuilder Builder = MauiApp.CreateBuilder();
+            Builder.UseMauiApp<App>().ConfigureFonts(Fonts => Fonts.AddFont("RobotoMonoMedium.ttf", "RobotoMonoMedium")).UseMauiCommunityToolkit();
+            return Builder.Build();
+        }
     }
 }

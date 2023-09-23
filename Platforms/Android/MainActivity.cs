@@ -7,60 +7,61 @@ using izolabella.LoFi.Platforms.Android.Services.Implementations;
 using izolabella.LoFi.Platforms.Android.Notifications;
 using izolabella.LoFi.Wide.Services.Implementations.Notifications;
 
-namespace izolabella.LoFi.Platforms.Android;
-
-[Activity(Theme = "@style/Maui.SplashTheme", MainLauncher = true, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
-public class MainActivity : MauiAppCompatActivity
+namespace izolabella.LoFi.Platforms.Android
 {
-    public static bool AlreadyStarted { get; set; } = false;
-
-    public Intent? I { get; set; }
-
-    public void StartMusicService()
+    [Activity(Theme = "@style/Maui.SplashTheme", MainLauncher = true, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
+    public class MainActivity : MauiAppCompatActivity
     {
-        this.I = new(this, typeof(MusicService));
-        if (OperatingSystem.IsAndroidVersionAtLeast(26))
-        {
-            this.StartForegroundService(I);
-        }
-        else
-        {
-            this.StartService(I);
-        }
-    }
+        public static bool AlreadyStarted { get; set; } = false;
 
-    public void StopMusicService()
-    {
-        if (this.I != null)
-        {
-            this.StopService(this.I);
-        }
-    }
+        public Intent? I { get; set; }
 
-    protected override void OnCreate(Bundle? SavedInstanceState)
-    {
-        if (!AlreadyStarted)
+        public void StartMusicService()
         {
-            AlreadyStarted = true;
-            MainPage.OnLoggedIn += this.UserLoggedInAsync;
-            this.StartMusicService();
+            this.I = new(this, typeof(MusicService));
+            if (OperatingSystem.IsAndroidVersionAtLeast(26))
+            {
+                this.StartForegroundService(this.I);
+            }
+            else
+            {
+                this.StartService(this.I);
+            }
         }
-        base.OnCreate(SavedInstanceState);
-    }
 
-    private Task UserLoggedInAsync(Music.Structure.Users.LoFiUser User)
-    {
-        NotificationManager? M = (NotificationManager?)GetSystemService(NotificationService);
-        if(M != null)
+        public void StopMusicService()
         {
-            NotificationHandler.SendNotification($"Verified as {User.Profile.DisplayName}", new IzolabellaMusicChannel(), M, this);
+            if (this.I != null)
+            {
+                this.StopService(this.I);
+            }
         }
-        return Task.CompletedTask;
-    }
 
-    protected override void OnDestroy()
-    {
-        this.StopMusicService();
-        base.OnDestroy();
+        protected override void OnCreate(Bundle? SavedInstanceState)
+        {
+            if (!AlreadyStarted)
+            {
+                AlreadyStarted = true;
+                MainPage.OnLoggedIn += this.UserLoggedInAsync;
+                this.StartMusicService();
+            }
+            base.OnCreate(SavedInstanceState);
+        }
+
+        private Task UserLoggedInAsync(Music.Structure.Users.LoFiUser User)
+        {
+            NotificationManager? M = (NotificationManager?)this.GetSystemService(NotificationService);
+            if (M != null)
+            {
+                NotificationHandler.SendNotification($"Verified as {User.Profile.DisplayName}", new IzolabellaMusicChannel(), M, this);
+            }
+            return Task.CompletedTask;
+        }
+
+        protected override void OnDestroy()
+        {
+            this.StopMusicService();
+            base.OnDestroy();
+        }
     }
 }

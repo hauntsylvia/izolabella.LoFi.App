@@ -1,13 +1,12 @@
-﻿using izolabella.Maui.Util.GenericStructures.Animations.Bases;
-
-namespace izolabella.LoFi;
-
-public partial class App : Application
+﻿namespace izolabella.LoFi
 {
-    public App()
+    public partial class App : Application
     {
-        InitializeComponent();
+        public App()
+        {
+            this.InitializeComponent();
 
-        MainPage = new AppShell();
+            this.MainPage = new AppShell();
+        }
     }
 }
