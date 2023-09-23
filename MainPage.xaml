@@ -27,9 +27,9 @@
                 <Frame HorizontalOptions="Center" MaximumHeightRequest="175" MinimumHeightRequest="175" 
                        VerticalOptions="Center" x:Name="Resize">
                     <VerticalStackLayout VerticalOptions="Start" ZIndex="3" WidthRequest="300">
-                        <Label BackgroundColor="Transparent" Text="Song Name" x:Name="SongNameLabel" Opacity="0.8" FontSize="18" CharacterSpacing="1.75" ZIndex="4"/>
-                        <Label BackgroundColor="Transparent" Text="Artist" x:Name="ArtistNameLabel" Opacity="0.5" FontSize="15" CharacterSpacing="1.75" ZIndex="4"/>
-                        <Slider BackgroundColor="Transparent" Value="0" x:Name="VolumeSlider" WidthRequest="150" HorizontalOptions="Start" Opacity="0.8" ValueChanged="VolChanged" DragCompleted="DragCompleted"></Slider>
+                        <Label BackgroundColor="Transparent" WidthRequest="300" HorizontalTextAlignment="Center" Text="Song Name" x:Name="SongNameLabel" Opacity="0.8" FontSize="18" CharacterSpacing="1.75" ZIndex="4"/>
+                        <Label BackgroundColor="Transparent" WidthRequest="300" HorizontalTextAlignment="Center" Text="Artist" x:Name="ArtistNameLabel" Opacity="0.5" FontSize="15" CharacterSpacing="1.75" ZIndex="4"/>
+                        <Slider BackgroundColor="Transparent" Value="0" x:Name="VolumeSlider" TranslationX="25" WidthRequest="250" HorizontalOptions="Start" Opacity="0.8" ValueChanged="VolChanged" DragCompleted="DragCompleted"></Slider>
                     </VerticalStackLayout>
                 </Frame>
             </VerticalStackLayout>

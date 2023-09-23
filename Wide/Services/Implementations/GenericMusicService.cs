@@ -23,6 +23,12 @@ namespace izolabella.LoFi.Wide.Services.Implementations
             this.Reference.Client.OnReconnect += this.ReconnectedAsync;
             this.Client = Reference.Client;
             this.NextSongRequested += this.NewSongAsync;
+            this.DataAvailable += this.GenericMusicService_DataAvailable;
+        }
+
+        private async Task GenericMusicService_DataAvailable(byte[] NewData)
+        {
+            await (this.LastMusicPlayer?.FeedBytesAsync(NewData) ?? Task.CompletedTask);
         }
 
         private async void ReconnectedAsync()
@@ -57,6 +63,9 @@ namespace izolabella.LoFi.Wide.Services.Implementations
 
         public delegate Task BufferReloadHandler();
         public event BufferReloadHandler? BufferReloaded;
+
+        public delegate Task DataAvailableH(byte[] NewData);
+        public event DataAvailableH? DataAvailable;
 
         public Func<NowPlayingResult, int, MusicPlayer> GetNextMusicPlayer { get; }
 
@@ -135,7 +144,7 @@ namespace izolabella.LoFi.Wide.Services.Implementations
                 if (SongData != null && SongData.Success && !this.SongPlayingTaskCancellationToken.Token.IsCancellationRequested)
                 {
                     this.Index += SongData.Result.Length;
-                    await PlayerToFeed.FeedBytesAsync(SongData.Result);
+                    this.DataAvailable?.Invoke(SongData.Result);
                     Consumed = true;
                     EndsAt = DateTime.UtcNow.Add(NowPlayingInformation.Playing.GetTimeFromByteLength(SongData.Result.LongLength));
                     SongData = null;
@@ -144,7 +153,7 @@ namespace izolabella.LoFi.Wide.Services.Implementations
             if (NowPlayingInformation.Started)
             {
                 TimeSpan WaitTick = TrueTimeLeft >= TimeSpan.FromMilliseconds(100) ? TrueTimeLeft.Subtract(TimeSpan.FromMilliseconds(100)) : TrueTimeLeft;
-                await Task.Delay(!Consumed ? TimeSpan.Zero : WaitTick);
+                await Task.Delay(/*!Consumed ? TimeSpan.Zero : WaitTick*/ TimeSpan.FromMilliseconds(5));
                 SongData = !Consumed || SongData == null ? await this.Client.GetBytesAsync(NowPlayingInformation.Playing.Id, this.Index, this.BufferSize) : SongData;
             }
             if (!this.SongPlayingTaskCancellationToken.Token.IsCancellationRequested)
