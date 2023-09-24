@@ -97,7 +97,6 @@ namespace izolabella.LoFi.Wide.Services.Implementations
 
         private async Task NewSongAsync(bool FirstSong, NowPlayingResult NowPlayingInformation)
         {
-            this.CurrentSongBuffer = new();
             float Volume = this.LastMusicPlayer?.LastVolume ?? 0f;
             if (!FirstSong)
             {
@@ -126,7 +125,7 @@ namespace izolabella.LoFi.Wide.Services.Implementations
 
         private async Task LastMusicPlayer_OnSongEndAsync()
         {
-            this.NextSongRequested?.Invoke(false, await this.StartPlayingAsync());
+            await this.StartPlayingAsync();
         }
 
         private async Task<NowPlayingResult> StartPlayingAsync()
@@ -146,7 +145,6 @@ namespace izolabella.LoFi.Wide.Services.Implementations
             }
         }
 
-        private List<byte> CurrentSongBuffer { get; set; } = new();
         private async Task GetSongDataAsync()
         {
             NowPlayingResult? NowPlaying = this.NowPlaying;
@@ -164,7 +162,6 @@ namespace izolabella.LoFi.Wide.Services.Implementations
             Request<byte[]> ByteRequest = await this.Client.GetBytesAsync(NowPlaying.Playing.Id, this.Index, this.BufferSize);
             if(ByteRequest.Success)
             {
-                this.CurrentSongBuffer.AddRange(ByteRequest.Result);
                 this.Index += ByteRequest.Result.Length;
                 this.DataAvailable?.Invoke(ByteRequest.Result);
                 await Task.Delay(50);
