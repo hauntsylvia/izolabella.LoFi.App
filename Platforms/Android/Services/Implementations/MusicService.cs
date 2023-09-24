@@ -48,7 +48,6 @@ namespace izolabella.LoFi.Platforms.Android.Services.Implementations
             }
 
             this.Service = MainPage.GetService().ConfigureAwait(true).GetAwaiter().GetResult();
-            this.Service.BufferReloaded += this.MusicService_BufferReloaded;
             return StartCommandResult.Sticky;
         }
 
@@ -59,11 +58,6 @@ namespace izolabella.LoFi.Platforms.Android.Services.Implementations
                 await this.Service.StopAsync();
             }
             base.OnDestroy();
-        }
-
-        private Task MusicService_BufferReloaded()
-        {
-            return Task.CompletedTask;
         }
     }
 }

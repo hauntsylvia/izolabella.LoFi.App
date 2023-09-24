@@ -61,9 +61,6 @@ namespace izolabella.LoFi.Wide.Services.Implementations
         public delegate Task NextSongRequestedHandler(bool FirstSong, NowPlayingResult NowPlayingInformation);
         public event NextSongRequestedHandler NextSongRequested;
 
-        public delegate Task BufferReloadHandler();
-        public event BufferReloadHandler? BufferReloaded;
-
         public delegate Task DataAvailableH(byte[] NewData);
         public event DataAvailableH? DataAvailable;
 
