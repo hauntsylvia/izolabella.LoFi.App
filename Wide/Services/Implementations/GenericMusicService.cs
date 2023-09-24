@@ -54,7 +54,7 @@ namespace izolabella.LoFi.Wide.Services.Implementations
 
         public Task StartAsync()
         {
-            Task StartTask = this.StartPlayingAsync();
+            _ = this.StartPlayingAsync();
             return Task.CompletedTask;
         }
 
@@ -110,13 +110,23 @@ namespace izolabella.LoFi.Wide.Services.Implementations
                 return;
             }
             this.BufferSize = NowPlayingInformation.Playing.FileInformation.LengthInBytes + 1;
+            if(this.LastMusicPlayer != null)
+            {
+                this.LastMusicPlayer.OnSongEndAsync -= this.LastMusicPlayer_OnSongEndAsync;
+            }
             this.LastMusicPlayer = this.GetNextMusicPlayer.Invoke(NowPlayingInformation, this.BufferSize);
+            this.LastMusicPlayer.OnSongEndAsync += this.LastMusicPlayer_OnSongEndAsync;
             await this.LastMusicPlayer.SetVolume(Volume);
             await this.LastMusicPlayer.StartAsync();
             this.Index = 0;
             this.SongPlayingTaskCancellationToken = new();
             this.NowPlaying = NowPlayingInformation;
             this.SongPlayingTask = this.GetSongDataAsync(); /*this.FeedPlayerLoopAsync(this.LastMusicPlayer, NowPlayingInformation, DateTime.MinValue, null);*/
+        }
+
+        private async Task LastMusicPlayer_OnSongEndAsync()
+        {
+            this.NextSongRequested?.Invoke(false, await this.StartPlayingAsync());
         }
 
         private async Task<NowPlayingResult> StartPlayingAsync()
@@ -162,8 +172,8 @@ namespace izolabella.LoFi.Wide.Services.Implementations
             await this.GetSongDataAsync();
         }
 
-        private async Task FeedPlayerLoopAsync(MusicPlayer PlayerToFeed, NowPlayingResult NowPlayingInformation, DateTime EndsAt, Request<byte[]>? SongData, bool Consumed = false)
-        {
+        //private async Task FeedPlayerLoopAsync(MusicPlayer PlayerToFeed, NowPlayingResult NowPlayingInformation, DateTime EndsAt, Request<byte[]>? SongData, bool Consumed = false)
+        //{
             //Task BufferInvoke = this.BufferReloaded?.Invoke() ?? Task.CompletedTask;
             //TimeSpan TrueTimeLeft = EndsAt.Subtract(DateTime.UtcNow);
             //TrueTimeLeft = TrueTimeLeft < TimeSpan.Zero ? TimeSpan.Zero : TrueTimeLeft;
@@ -198,7 +208,7 @@ namespace izolabella.LoFi.Wide.Services.Implementations
             //}
 
             //    return Task.CompletedTask;
-        }
+        //}
 
         public async Task<List<IzolabellaSong>> GetQueueAsync()
         {
